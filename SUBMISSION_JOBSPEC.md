@@ -2,9 +2,7 @@
 
 **One line:** Orbit is the professional network for the people inside your building. AI finds the three people worth meeting each week and books a 15-minute coffee. AI finds the person; you have the coffee.
 
-**Market entry:** Gurugram, India (office towers, business parks, and coworking centres in DLF Cyber City / Cyber Hub, Golf Course Road, Udyog Vihar).
-
-> NOTE TO SELF — replace **[PILOT BUILDING]** below with the exact confirmed building/coworking centre name before submitting.
+**Market entry:** Gurugram, India. Launch cluster of four buildings/centres we are starting with: **DLF Tower, CDS, Capital Building, and WoCo** (coworking).
 
 ---
 
@@ -26,10 +24,10 @@ We are deliberately **narrowing scope** to what is buildable and de-risked in 8 
 
 ## 2. Reviewer question 1 — Building access & week-1 outreach
 
-**Pilot building:** **[PILOT BUILDING]** in Gurugram — a building/coworking centre we have direct access to for a captive first pilot. This gives us a warm first customer instead of a cold start.
+**Launch cluster (Gurugram):** we are starting with four buildings/centres we have direct access to — **DLF Tower, CDS, Capital Building, and WoCo** — so we begin with warm first customers instead of a cold start. **WoCo (coworking) is our week-1 lead pilot** because a coworking operator has a single decision-maker, dense membership, and a community-experience mandate — the fastest path to a signed pilot.
 
 **Week-1 outreach plan (concrete):**
-- Week 1: Secure a verbal/LOI free-pilot agreement with the **[PILOT BUILDING]** centre head / community manager. Ask: run a free 60-day pilot on one floor/centre, target 50+ opted-in members.
+- Week 1: Secure a verbal/LOI free-pilot agreement with the **WoCo** centre head / community manager, and open conversations with the DLF Tower, CDS, and Capital Building management/community teams. Ask: run a free 60-day pilot on one floor/centre, target 50+ opted-in members.
 - Weeks 1–4 pipeline (in parallel, so we're not single-threaded on one building): contact 8–10 Gurugram operators to line up pilot #2 and validate willingness-to-pay. Named targets:
   - **WeWork India** (Cyber City / Two Horizon Center) — community managers per centre.
   - **Awfis** (multiple Gurugram centres; India's largest listed flexible-workspace operator).
@@ -104,7 +102,7 @@ The reviewer flags minimum viable density. Our answer: relevance is **computed, 
 
 ## 6. 8-week build plan
 
-- **Week 1:** Lock free pilot at **[PILOT BUILDING]**; build auth + invite-code building identity + profile capture (give/want). Start operator outreach pipeline.
+- **Week 1:** Lock free pilot at **WoCo**; build auth + invite-code building identity + profile capture (give/want). Open DLF Tower / CDS / Capital Building conversations.
 - **Week 2:** Matching engine v1 (embeddings + complementary-fit scoring in pgvector); seed 30–50 members in the pilot building.
 - **Week 3:** Weekly intro delivery + accept/pass; calendar booking via Cal.com + Google Calendar; WhatsApp/email notifications.
 - **Week 4:** First live introductions in the pilot building; operator dashboard v1 (members, intros, accept rate, meetings booked). Hit 5–10 operators contacted.
@@ -122,7 +120,7 @@ The core value — AI matching, weekly recommendation delivery, and coffee booki
 
 ## 8. Summary of changes made in response to feedback
 
-- **Named a pilot building** ([PILOT BUILDING], Gurugram) + a concrete week-1 outreach plan and named operator targets.
+- **Named the launch cluster** (DLF Tower, CDS, Capital Building, WoCo — Gurugram; WoCo week-1 lead) + a concrete week-1 outreach plan.
 - **Specified every third-party API**: OpenAI/Voyage embeddings + Claude for matching, Google Calendar + Cal.com for scheduling, invite-code + email-domain (then optional geofence) for location, Supabase/Next.js/Vercel stack.
 - **Committed to a pricing model and pilot terms** (free 60-day pilot → flat ₹/centre/month) with in-pilot willingness-to-pay validation.
 - **Reframed density** as a computed-relevance advantage that works at ~40–60 members in one building.
