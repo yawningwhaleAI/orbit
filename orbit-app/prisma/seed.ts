@@ -273,18 +273,29 @@ async function main() {
   });
   console.log("Matching complete:", result);
 
-  // Mark a couple of meetings as held so the operator dashboard looks alive.
-  const someMatches = await db.match.findMany({ take: 3 });
-  for (const mt of someMatches) {
-    await db.match.update({ where: { id: mt.id }, data: { status: "accepted" } });
+  // Mark a few OTHER members' meetings as held so the operator dashboard looks
+  // alive — but leave the demo user's own intros open so you can try accept/pass.
+  const demo = await db.user.findUnique({ where: { email: "demo@orbit.app" } });
+  const others = await db.match.findMany({
+    where: { ownerId: { not: demo?.id } },
+    take: 10,
+  });
+  // A realistic spread: some accepted (coffees held), some passed, rest open.
+  const accept = others.slice(0, 5);
+  const pass = others.slice(5, 8);
+  for (const mt of accept) {
+    await db.match.update({ where: { id: mt.id }, data: { status: "accepted", respondedAt: new Date() } });
     await db.meeting.create({
       data: {
         matchId: mt.id,
         scheduledAt: new Date(Date.now() + 2 * 24 * 3600 * 1000),
-        venue: "Ground-floor cafe, DLF Tower",
+        venue: "the ground-floor cafe, DLF Tower",
         status: "held",
       },
     });
+  }
+  for (const mt of pass) {
+    await db.match.update({ where: { id: mt.id }, data: { status: "passed", respondedAt: new Date() } });
   }
 
   console.log("\nDone. Log in at /login with demo@orbit.app (member) or operator@orbit.app (operator).");
