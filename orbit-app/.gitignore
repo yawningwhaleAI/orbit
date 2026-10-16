@@ -10,8 +10,12 @@ build
 next-env.d.ts
 
 # env
-.env
+# .env holds safe DEV defaults (SQLite + dev secrets) and IS committed so the
+# app runs on a fresh clone. Put real secrets in .env.local (gitignored) or in
+# your host's env settings (Vercel) — those override .env.
+.env.local
 .env*.local
+.env.production
 
 # database (dev sqlite)
 *.db
