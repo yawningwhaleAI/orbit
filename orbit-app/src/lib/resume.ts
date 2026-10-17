@@ -70,7 +70,7 @@ export async function parseResume(text: string): Promise<ParsedResume | null> {
     "Return only the JSON object.",
   ].join("\n");
 
-  const raw = await chat(prompt, { system, maxTokens: 600, temperature: 0.2 });
+  const raw = await chat(prompt, { system, maxTokens: 600, temperature: 0.2, json: true });
   if (!raw) return null;
 
   const json = extractJson(raw);

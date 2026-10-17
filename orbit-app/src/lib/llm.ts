@@ -19,36 +19,69 @@ export interface ChatOptions {
   system?: string;
   maxTokens?: number;
   temperature?: number;
+  json?: boolean; // ask the provider for a JSON object response
+}
+
+export interface ChatResult {
+  text: string | null;
+  // A short, safe diagnostic when the call failed (for logs / admin check).
+  error?: string;
 }
 
 export async function chat(prompt: string, opts: ChatOptions = {}): Promise<string | null> {
-  const maxTokens = opts.maxTokens ?? 300;
-  if (env("OPENROUTER_API_KEY")) {
-    const out = await openRouter(prompt, maxTokens, opts);
-    if (out) return out;
-  }
-  if (env("ANTHROPIC_API_KEY")) {
-    const out = await anthropic(prompt, maxTokens, opts);
-    if (out) return out;
-  }
-  return null;
+  return (await chatDetailed(prompt, opts)).text;
 }
 
-async function openRouter(prompt: string, maxTokens: number, opts: ChatOptions): Promise<string | null> {
-  const model = env("OPENROUTER_MODEL") || "meta-llama/llama-3.3-70b-instruct:free";
+// Like chat(), but returns why it failed. Used by the admin diagnostic route.
+export async function chatDetailed(prompt: string, opts: ChatOptions = {}): Promise<ChatResult> {
+  const maxTokens = opts.maxTokens ?? 300;
+  const errors: string[] = [];
+
+  if (env("OPENROUTER_API_KEY")) {
+    // Try the configured model, then an optional fallback. Free models are
+    // frequently rate-limited or blocked by data policy, so a fallback helps.
+    const models = [
+      env("OPENROUTER_MODEL") || "meta-llama/llama-3.3-70b-instruct:free",
+      env("OPENROUTER_FALLBACK_MODEL") || "mistralai/mistral-7b-instruct:free",
+    ].filter((m, i, a) => m && a.indexOf(m) === i);
+
+    for (const model of models) {
+      const r = await openRouter(prompt, maxTokens, opts, model);
+      if (r.text) return { text: r.text };
+      if (r.error) errors.push(`OpenRouter[${model}]: ${r.error}`);
+    }
+  }
+
+  if (env("ANTHROPIC_API_KEY")) {
+    const r = await anthropic(prompt, maxTokens, opts);
+    if (r.text) return { text: r.text };
+    if (r.error) errors.push(`Anthropic: ${r.error}`);
+  }
+
+  if (errors.length === 0) errors.push("No LLM provider configured (set OPENROUTER_API_KEY).");
+  return { text: null, error: errors.join(" | ") };
+}
+
+async function openRouter(
+  prompt: string,
+  maxTokens: number,
+  opts: ChatOptions,
+  model: string
+): Promise<ChatResult> {
   try {
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${env("OPENROUTER_API_KEY")}`,
-        "HTTP-Referer": env("APP_URL") || "https://orbit.app",
+        "HTTP-Referer": env("APP_URL") || "https://withinorbit.space",
         "X-Title": "Orbit",
       },
       body: JSON.stringify({
         model,
         max_tokens: maxTokens,
         temperature: opts.temperature ?? 0.5,
+        ...(opts.json ? { response_format: { type: "json_object" } } : {}),
         messages: [
           ...(opts.system ? [{ role: "system", content: opts.system }] : []),
           { role: "user", content: prompt },
@@ -56,18 +89,27 @@ async function openRouter(prompt: string, maxTokens: number, opts: ChatOptions):
       }),
     });
     if (!res.ok) {
-      console.warn("[llm] OpenRouter error", res.status, await res.text());
-      return null;
+      const body = (await res.text()).slice(0, 300);
+      console.warn("[llm] OpenRouter error", res.status, body);
+      return { text: null, error: `${res.status} ${body}` };
     }
-    const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-    return json.choices?.[0]?.message?.content?.trim() || null;
+    const json = (await res.json()) as {
+      choices?: { message?: { content?: string } }[];
+      error?: { message?: string };
+    };
+    const content = json.choices?.[0]?.message?.content?.trim();
+    if (!content) {
+      // OpenRouter sometimes returns 200 with an error body (esp. free models).
+      return { text: null, error: json.error?.message || "empty response" };
+    }
+    return { text: content };
   } catch (e) {
     console.warn("[llm] OpenRouter request failed:", e);
-    return null;
+    return { text: null, error: String(e) };
   }
 }
 
-async function anthropic(prompt: string, maxTokens: number, opts: ChatOptions): Promise<string | null> {
+async function anthropic(prompt: string, maxTokens: number, opts: ChatOptions): Promise<ChatResult> {
   const model = env("ANTHROPIC_MODEL") || "claude-sonnet-5";
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -85,13 +127,14 @@ async function anthropic(prompt: string, maxTokens: number, opts: ChatOptions): 
       }),
     });
     if (!res.ok) {
-      console.warn("[llm] Anthropic error", res.status, await res.text());
-      return null;
+      const body = (await res.text()).slice(0, 300);
+      console.warn("[llm] Anthropic error", res.status, body);
+      return { text: null, error: `${res.status} ${body}` };
     }
     const json = (await res.json()) as { content: { type: string; text: string }[] };
-    return json.content?.find((c) => c.type === "text")?.text?.trim() || null;
+    return { text: json.content?.find((c) => c.type === "text")?.text?.trim() || null };
   } catch (e) {
     console.warn("[llm] Anthropic request failed:", e);
-    return null;
+    return { text: null, error: String(e) };
   }
 }
