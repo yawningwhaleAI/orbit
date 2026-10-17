@@ -37,34 +37,34 @@ export async function chatDetailed(prompt: string, opts: ChatOptions = {}): Prom
   const maxTokens = opts.maxTokens ?? 300;
   const errors: string[] = [];
 
-  // Google Gemini first — its free tier is the most reliable (no data-policy
-  // block, generous limits). Try the configured model, then "-latest" aliases
-  // so a renamed model (Google rotates these) doesn't break us.
-  if (env("GEMINI_API_KEY")) {
-    const gModels = [
-      env("GEMINI_MODEL") || "gemini-3.8-flash",
-      "gemini-flash-latest",
-      "gemini-2.5-flash",
-    ].filter((m, i, a) => m && a.indexOf(m) === i);
-    for (const model of gModels) {
-      const r = await gemini(prompt, maxTokens, opts, model);
-      if (r.text) return { text: r.text };
-      if (r.error) errors.push(`Gemini[${model}]: ${r.error}`);
-    }
-  }
-
+  // OpenRouter first — its free models are currently the most dependable. Try
+  // the configured model, then a fallback (default: the Free Models Router,
+  // which auto-routes to an available free model so a retired slug never
+  // breaks us).
   if (env("OPENROUTER_API_KEY")) {
-    // Try the configured model, then an optional fallback. Free models are
-    // frequently rate-limited or blocked by data policy, so a fallback helps.
     const models = [
-      env("OPENROUTER_MODEL") || "meta-llama/llama-3.3-70b-instruct:free",
-      env("OPENROUTER_FALLBACK_MODEL") || "mistralai/mistral-7b-instruct:free",
+      env("OPENROUTER_MODEL") || "nvidia/nemotron-3-super-120b-a12b:free",
+      env("OPENROUTER_FALLBACK_MODEL") || "openrouter/free",
     ].filter((m, i, a) => m && a.indexOf(m) === i);
 
     for (const model of models) {
       const r = await openRouter(prompt, maxTokens, opts, model);
       if (r.text) return { text: r.text };
       if (r.error) errors.push(`OpenRouter[${model}]: ${r.error}`);
+    }
+  }
+
+  // Google Gemini next. Its free tier is small/rate-limited, but it's a good
+  // backup when it has quota. Try the configured model, then "-latest" aliases.
+  if (env("GEMINI_API_KEY")) {
+    const gModels = [
+      env("GEMINI_MODEL") || "gemini-3.8-flash",
+      "gemini-flash-latest",
+    ].filter((m, i, a) => m && a.indexOf(m) === i);
+    for (const model of gModels) {
+      const r = await gemini(prompt, maxTokens, opts, model);
+      if (r.text) return { text: r.text };
+      if (r.error) errors.push(`Gemini[${model}]: ${r.error}`);
     }
   }
 
