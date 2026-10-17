@@ -76,7 +76,7 @@ export default async function IntroPage({ params }: { params: { id: string } }) 
 
   return (
     <>
-      <AppNav right={match.building.name} />
+      <AppNav right={match.building.name} profile />
       <main className="mx-auto max-w-xl px-5 py-8">
         <Link href="/home" className="mb-4 inline-flex items-center gap-1 text-sm text-ink-faint hover:text-ink">
           ← This week

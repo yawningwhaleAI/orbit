@@ -26,7 +26,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <AppNav right={`${user.building?.name ?? "Orbit"} · Week ${week.split("-W")[1]}`} />
+      <AppNav right={`${user.building?.name ?? "Orbit"} · Week ${week.split("-W")[1]}`} profile />
       <main className="mx-auto max-w-2xl px-5 py-10">
         <Eyebrow>Your week</Eyebrow>
         <h1 className="text-[2.2rem] leading-tight">
