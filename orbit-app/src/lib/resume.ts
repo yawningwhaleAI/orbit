@@ -3,6 +3,7 @@
 // is never stored.
 
 import { extractText, getDocumentProxy } from "unpdf";
+import mammoth from "mammoth";
 import { chat, llmEnabled } from "./llm";
 import { GIVE_SUGGESTIONS, WANT_SUGGESTIONS } from "./tags";
 
@@ -22,6 +23,23 @@ export async function extractPdfText(buffer: ArrayBuffer): Promise<string> {
   const pdf = await getDocumentProxy(new Uint8Array(buffer));
   const { text } = await extractText(pdf, { mergePages: true });
   return (Array.isArray(text) ? text.join("\n") : text || "").trim();
+}
+
+export async function extractDocxText(buffer: ArrayBuffer): Promise<string> {
+  const { value } = await mammoth.extractRawText({ buffer: Buffer.from(buffer) });
+  return (value || "").trim();
+}
+
+// Extract text from a PDF or DOCX resume based on file name / mime type.
+export async function extractResumeText(
+  buffer: ArrayBuffer,
+  fileName: string,
+  mime: string
+): Promise<string> {
+  const isDocx =
+    mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    fileName.toLowerCase().endsWith(".docx");
+  return isDocx ? extractDocxText(buffer) : extractPdfText(buffer);
 }
 
 export function resumeParsingEnabled(): boolean {

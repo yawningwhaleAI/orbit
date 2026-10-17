@@ -4,8 +4,15 @@
 // ANTHROPIC_API_KEY) -> null (callers fall back to templates/manual input).
 // Plain fetch, no SDK, so every provider is optional.
 
+// Trim env values defensively — pasted secrets often carry a trailing newline
+// or space, which breaks HTTP Authorization headers.
+function env(key: string): string | undefined {
+  const v = process.env[key];
+  return v ? v.trim() : undefined;
+}
+
 export function llmEnabled(): boolean {
-  return !!(process.env.OPENROUTER_API_KEY || process.env.ANTHROPIC_API_KEY);
+  return !!(env("OPENROUTER_API_KEY") || env("ANTHROPIC_API_KEY"));
 }
 
 export interface ChatOptions {
@@ -16,11 +23,11 @@ export interface ChatOptions {
 
 export async function chat(prompt: string, opts: ChatOptions = {}): Promise<string | null> {
   const maxTokens = opts.maxTokens ?? 300;
-  if (process.env.OPENROUTER_API_KEY) {
+  if (env("OPENROUTER_API_KEY")) {
     const out = await openRouter(prompt, maxTokens, opts);
     if (out) return out;
   }
-  if (process.env.ANTHROPIC_API_KEY) {
+  if (env("ANTHROPIC_API_KEY")) {
     const out = await anthropic(prompt, maxTokens, opts);
     if (out) return out;
   }
@@ -28,14 +35,14 @@ export async function chat(prompt: string, opts: ChatOptions = {}): Promise<stri
 }
 
 async function openRouter(prompt: string, maxTokens: number, opts: ChatOptions): Promise<string | null> {
-  const model = process.env.OPENROUTER_MODEL || "meta-llama/llama-3.3-70b-instruct:free";
+  const model = env("OPENROUTER_MODEL") || "meta-llama/llama-3.3-70b-instruct:free";
   try {
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "HTTP-Referer": process.env.APP_URL || "https://orbit.app",
+        Authorization: `Bearer ${env("OPENROUTER_API_KEY")}`,
+        "HTTP-Referer": env("APP_URL") || "https://orbit.app",
         "X-Title": "Orbit",
       },
       body: JSON.stringify({
@@ -61,13 +68,13 @@ async function openRouter(prompt: string, maxTokens: number, opts: ChatOptions):
 }
 
 async function anthropic(prompt: string, maxTokens: number, opts: ChatOptions): Promise<string | null> {
-  const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
+  const model = env("ANTHROPIC_MODEL") || "claude-sonnet-5";
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY as string,
+        "x-api-key": env("ANTHROPIC_API_KEY") as string,
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({

@@ -14,12 +14,12 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 async function handle(req: NextRequest) {
-  const secret = process.env.CRON_SECRET;
+  const secret = process.env.CRON_SECRET?.trim();
   if (secret) {
-    const auth = req.headers.get("authorization");
+    const auth = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
     const url = new URL(req.url);
-    const qp = url.searchParams.get("secret");
-    if (auth !== `Bearer ${secret}` && qp !== secret) {
+    const qp = (url.searchParams.get("secret") || "").trim();
+    if (auth !== secret && qp !== secret) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
   }

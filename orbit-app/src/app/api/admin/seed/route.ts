@@ -11,11 +11,12 @@ export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 async function handle(req: NextRequest) {
-  const secret = process.env.CRON_SECRET;
+  const secret = process.env.CRON_SECRET?.trim();
   const url = new URL(req.url);
   const provided =
-    req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
-    url.searchParams.get("secret");
+    (req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
+      url.searchParams.get("secret") ||
+      "").trim();
 
   if (!secret || provided !== secret) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
