@@ -163,7 +163,9 @@ async function gemini(
         const body = (await res.text()).slice(0, 300);
         console.warn("[llm] Gemini error", res.status, body);
         lastErr = `${res.status} ${body}`;
-        if (res.status === 503 || res.status === 429) continue; // transient — retry
+        // 503 = momentary overload (retry). 429 = quota exhausted, which won't
+        // recover in seconds, so fail fast instead of burning more quota.
+        if (res.status === 503) continue;
         return { text: null, error: lastErr };
       }
       const json = (await res.json()) as {
