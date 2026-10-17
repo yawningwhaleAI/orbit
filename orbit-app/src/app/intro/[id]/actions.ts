@@ -35,6 +35,31 @@ export async function respond(formData: FormData) {
   if (decision === "accept") {
     const when = parseSlot(formData.get("scheduledAt")) ?? nextThursday3pm();
     const venue = `${match.building.cafeName}, ${match.building.name}`;
+
+    // Guard against double-booking: if either person already has a coffee within
+    // an hour of this time (on a different match), the slot is taken.
+    const clash = await db.meeting.findFirst({
+      where: {
+        status: { in: ["booked", "held"] },
+        matchId: { not: match.id },
+        match: {
+          OR: [
+            { ownerId: user.id },
+            { otherId: user.id },
+            { ownerId: match.otherId },
+            { otherId: match.otherId },
+          ],
+        },
+        scheduledAt: {
+          gte: new Date(when.getTime() - 60 * 60000),
+          lte: new Date(when.getTime() + 60 * 60000),
+        },
+      },
+    });
+    if (clash) {
+      redirect(`/intro/${match.id}?error=slot_taken`);
+    }
+
     await db.match.update({
       where: { id: match.id },
       data: { status: "accepted", respondedAt: new Date() },

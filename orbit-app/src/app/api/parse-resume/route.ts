@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ok: false,
       error: "ai_not_configured",
-      message: "Resume autofill needs an OPENROUTER_API_KEY. Fill the form manually for now.",
+      message: "Resume autofill needs an AI key (GEMINI_API_KEY or OPENROUTER_API_KEY). Fill the form manually for now.",
     });
   }
 
