@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Orbit brand tokens — see CONTEXT.md §20 */
+:root {
+  --bg: #faf7f2;
+  --bg-elev: #fffcf7;
+  --bg-sunken: #f3eee5;
+  --ink: #221e1a;
+  --ink-soft: #57514a;
+  --ink-faint: #8a837a;
+  --line: #e7dfd3;
+  --line-strong: #d8cdbd;
+  --accent: #c8752d;
+  --accent-bright: #e08b3e;
+  --accent-deep: #a65e1f;
+  --accent-tint: rgba(200, 117, 45, 0.1);
+  --accent-glow: rgba(224, 139, 62, 0.18);
+  --on-accent: #fff9f1;
+}
+
+:root[data-theme="dark"] {
+  --bg: #1a1714;
+  --bg-elev: #221e1a;
+  --bg-sunken: #14110e;
+  --ink: #f4eee4;
+  --ink-soft: #c0b6a8;
+  --ink-faint: #8b8175;
+  --line: #322c25;
+  --line-strong: #423a31;
+  --accent: #e08b3e;
+  --accent-bright: #efa057;
+  --accent-deep: #c8752d;
+  --accent-tint: rgba(224, 139, 62, 0.12);
+  --accent-glow: rgba(224, 139, 62, 0.22);
+  --on-accent: #1a1714;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1a1714;
+    --bg-elev: #221e1a;
+    --bg-sunken: #14110e;
+    --ink: #f4eee4;
+    --ink-soft: #c0b6a8;
+    --ink-faint: #8b8175;
+    --line: #322c25;
+    --line-strong: #423a31;
+    --accent: #e08b3e;
+    --accent-bright: #efa057;
+    --accent-deep: #c8752d;
+    --accent-tint: rgba(224, 139, 62, 0.12);
+    --accent-glow: rgba(224, 139, 62, 0.22);
+    --on-accent: #1a1714;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+}
+
+/* Warm wash behind everything */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(120% 80% at 50% -10%, var(--accent-tint), transparent 55%);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+::selection {
+  background: var(--accent-glow);
+}
+
+@keyframes orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}

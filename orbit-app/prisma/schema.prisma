@@ -1,0 +1,129 @@
+// Orbit data model — see CONTEXT.md §8.
+//
+// DEV: SQLite (zero-config, runs out of the box).
+// PROD: switch `provider` to "postgresql" and set DATABASE_URL to your
+// Supabase/Neon/Vercel Postgres connection string, then `prisma db push`.
+// All fields are provider-agnostic (JSON stored as String, statuses as
+// String) so the switch is clean.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Operator {
+  id        String     @id @default(cuid())
+  name      String
+  email     String?
+  plan      String     @default("pilot") // pilot | flat_tier_1 | flat_tier_2 | flat_tier_3
+  buildings Building[]
+  createdAt DateTime   @default(now())
+}
+
+model Building {
+  id         String       @id @default(cuid())
+  name       String
+  type       String       @default("coworking") // coworking | tower | park
+  city       String       @default("Gurugram")
+  address    String?
+  floors     Int          @default(10)
+  cafeName   String       @default("the ground-floor cafe")
+  pilotDay   Int          @default(1)
+  pilotLength Int         @default(60)
+  operator   Operator?    @relation(fields: [operatorId], references: [id])
+  operatorId String?
+  users      User[]
+  matches    Match[]
+  invites    InviteCode[]
+  createdAt  DateTime     @default(now())
+}
+
+model InviteCode {
+  code         String   @id
+  building     Building @relation(fields: [buildingId], references: [id])
+  buildingId   String
+  emailDomains String   @default("") // comma-separated allow-list, empty = any
+  createdAt    DateTime @default(now())
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  avatarSeed    String?  // first letter / color seed
+  isOperator    Boolean  @default(false)
+  onboarded     Boolean  @default(false)
+  status        String   @default("active") // active | paused
+
+  // Profile
+  company       String?
+  role          String?
+  seniority     String?  // junior | mid | senior | founder | investor
+  education     String?
+  floor         Int?
+  bio           String?
+  introsPerWeek Int      @default(3)
+
+  // Precomputed embeddings (JSON arrays as string; null = use fallback)
+  giveVec       String?
+  wantVec       String?
+
+  building      Building? @relation(fields: [buildingId], references: [id])
+  buildingId    String?
+
+  tags          ProfileTag[]
+  ownerMatches  Match[]   @relation("owner")
+  otherMatches  Match[]   @relation("other")
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model ProfileTag {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  kind      String   // give | want
+  label     String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Directional introduction: `owner` is the member who receives it and sees
+// `other` as the suggested person. Each member gets up to 3 per week.
+model Match {
+  id          String    @id @default(cuid())
+  building    Building  @relation(fields: [buildingId], references: [id])
+  buildingId  String
+  week        String    // ISO week key, e.g. "2026-W42"
+  owner       User      @relation("owner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId     String
+  other       User      @relation("other", fields: [otherId], references: [id], onDelete: Cascade)
+  otherId     String
+  score       Float     @default(0)
+  matchPct    Int       @default(0) // 0-100 for display
+  reason      String    @default("") // the "why you two" line
+  status      String    @default("proposed") // proposed | accepted | passed | expired
+  meeting     Meeting?
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  @@unique([week, ownerId, otherId])
+  @@index([ownerId, week])
+  @@index([buildingId, week])
+}
+
+model Meeting {
+  id          String   @id @default(cuid())
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId     String   @unique
+  scheduledAt DateTime
+  venue       String
+  status      String   @default("booked") // booked | held | cancelled
+  createdAt   DateTime @default(now())
+}
