@@ -1,9 +1,8 @@
-// Generates the one-line "why you two" for an introduction. Uses the
-// Anthropic Claude API when ANTHROPIC_API_KEY is set; otherwise composes a
-// warm, specific sentence from the overlapping give/want tags. No SDK
-// dependency — plain fetch keeps it optional.
+// Generates the one-line "why you two" for an introduction. Uses an LLM via
+// OpenRouter or Anthropic when a key is set (see lib/llm.ts); otherwise
+// composes a warm, specific sentence from the overlapping give/want tags.
 
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
+import { chat, llmEnabled } from "./llm";
 
 export interface WhyInput {
   ownerName: string;
@@ -20,7 +19,7 @@ export interface WhyInput {
 }
 
 export function aiEnabled(): boolean {
-  return !!process.env.ANTHROPIC_API_KEY;
+  return llmEnabled();
 }
 
 export async function whyYouTwo(input: WhyInput): Promise<string> {
@@ -57,32 +56,8 @@ export function whyYouTwoTemplate(input: WhyInput): string {
 
 async function whyYouTwoLLM(input: WhyInput): Promise<string | null> {
   if (!aiEnabled()) return null;
-  const prompt = buildPrompt(input);
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY as string,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 120,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
-    if (!res.ok) {
-      console.warn("[ai] Anthropic error", res.status, await res.text());
-      return null;
-    }
-    const json = (await res.json()) as { content: { type: string; text: string }[] };
-    const text = json.content?.find((c) => c.type === "text")?.text?.trim();
-    return text ? stripQuotes(text) : null;
-  } catch (e) {
-    console.warn("[ai] request failed, using template:", e);
-    return null;
-  }
+  const text = await chat(buildPrompt(input), { maxTokens: 120, temperature: 0.6 });
+  return text ? stripQuotes(text) : null;
 }
 
 function buildPrompt(i: WhyInput): string {
