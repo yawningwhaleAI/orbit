@@ -30,9 +30,9 @@ async function handle(req: NextRequest) {
     gemini_model: process.env.GEMINI_MODEL?.trim() || "(default) gemini-3.8-flash",
     openrouter_key_present: !!key,
     openrouter_key_length: key.length,
-    openrouter_model: process.env.OPENROUTER_MODEL?.trim() || "(default) meta-llama/llama-3.3-70b-instruct:free",
+    openrouter_model: process.env.OPENROUTER_MODEL?.trim() || "(default) nvidia/nemotron-3-super-120b-a12b:free",
     openrouter_fallback_model:
-      process.env.OPENROUTER_FALLBACK_MODEL?.trim() || "(default) mistralai/mistral-7b-instruct:free",
+      process.env.OPENROUTER_FALLBACK_MODEL?.trim() || "(default) openrouter/free",
     anthropic_key_present: !!(process.env.ANTHROPIC_API_KEY?.trim()),
   };
 
