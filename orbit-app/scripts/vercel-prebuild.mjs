@@ -22,14 +22,23 @@ schema = schema.replace(/provider = "(sqlite|postgresql)"/, `provider = "${provi
 fs.writeFileSync(schemaPath, schema);
 console.log(`[prebuild] Prisma provider = ${provider}`);
 
-if (provider === "postgresql" && process.env.DATABASE_URL) {
+// Use the DIRECT (non-pooled) URL for schema push when available.
+const pushUrl =
+  process.env.DATABASE_URL_UNPOOLED ||
+  process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.DATABASE_URL;
+
+if (provider === "postgresql" && pushUrl) {
   try {
     console.log("[prebuild] Pushing schema to Postgres...");
-    execSync("npx prisma db push --skip-generate", { stdio: "inherit" });
+    execSync("npx prisma db push --skip-generate", {
+      stdio: "inherit",
+      env: { ...process.env, DATABASE_URL: pushUrl },
+    });
   } catch (e) {
     // Don't fail the build if push has an issue; app will surface it at runtime.
     console.error("[prebuild] prisma db push failed (continuing):", e?.message || e);
   }
 } else if (provider === "postgresql") {
-  console.warn("[prebuild] DATABASE_URL not set — skipping db push.");
+  console.warn("[prebuild] No database URL set — skipping db push.");
 }
