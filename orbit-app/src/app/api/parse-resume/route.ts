@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/auth";
-import { extractPdfText, parseResume, resumeParsingEnabled } from "@/lib/resume";
+import { extractResumeText, parseResume, resumeParsingEnabled } from "@/lib/resume";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -30,21 +30,26 @@ export async function POST(req: NextRequest) {
   }
 
   if (!file) return NextResponse.json({ ok: false, error: "no_file" }, { status: 400 });
-  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-    return NextResponse.json({ ok: false, error: "not_pdf", message: "Please upload a PDF." }, { status: 400 });
+  const name = file.name.toLowerCase();
+  const isPdf = file.type === "application/pdf" || name.endsWith(".pdf");
+  const isDocx =
+    file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    name.endsWith(".docx");
+  if (!isPdf && !isDocx) {
+    return NextResponse.json({ ok: false, error: "bad_type", message: "Please upload a PDF or Word (.docx) file." }, { status: 400 });
   }
   if (file.size > MAX_BYTES) {
-    return NextResponse.json({ ok: false, error: "too_large", message: "PDF is too large (max 6 MB)." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "too_large", message: "File is too large (max 6 MB)." }, { status: 400 });
   }
 
   try {
     const buffer = await file.arrayBuffer();
-    const text = await extractPdfText(buffer);
+    const text = await extractResumeText(buffer, file.name, file.type);
     if (!text || text.length < 40) {
       return NextResponse.json({
         ok: false,
         error: "no_text",
-        message: "Couldn't read text from that PDF. Fill the form manually.",
+        message: "Couldn't read text from that file. Fill the form manually.",
       });
     }
     const data = await parseResume(text);

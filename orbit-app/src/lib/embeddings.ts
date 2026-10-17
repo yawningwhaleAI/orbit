@@ -5,8 +5,12 @@
 
 const MODEL = process.env.OPENAI_EMBEDDING_MODEL || "text-embedding-3-small";
 
+function key(): string | undefined {
+  return process.env.OPENAI_API_KEY?.trim() || undefined;
+}
+
 export function embeddingsEnabled(): boolean {
-  return !!process.env.OPENAI_API_KEY;
+  return !!key();
 }
 
 export async function embed(texts: string[]): Promise<number[][] | null> {
@@ -16,7 +20,7 @@ export async function embed(texts: string[]): Promise<number[][] | null> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${key()}`,
       },
       body: JSON.stringify({ model: MODEL, input: texts }),
     });

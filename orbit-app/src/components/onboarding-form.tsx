@@ -170,14 +170,14 @@ export function OnboardingForm({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold">Have a resume? Autofill in one tap.</div>
-            <div className="text-xs text-ink-faint">Upload a PDF — we read it, prefill below, and don&apos;t store the file.</div>
+            <div className="text-xs text-ink-faint">Upload a PDF — we read it, prefill below, and don&apos;t store the file. PDF or Word.</div>
           </div>
           <label className={clsx(buttonClass("ghost"), "cursor-pointer whitespace-nowrap")}>
             {resumeState === "parsing" ? "Reading…" : "Upload resume"}
             <input
               ref={fileRef}
               type="file"
-              accept=".pdf,application/pdf"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               className="hidden"
               onChange={handleFile}
               disabled={resumeState === "parsing"}
