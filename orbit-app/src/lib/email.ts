@@ -20,6 +20,17 @@ export function emailEnabled(): boolean {
   return !!env("RESEND_API_KEY");
 }
 
+// Synthetic demo accounts use @orbit.app addresses that don't receive mail.
+// Skip them so we never rack up bounces (which hurt sender reputation).
+// Real sign-ups use their own addresses and always get notified.
+export function isSendableAddress(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const e = email.trim().toLowerCase();
+  if (!e.includes("@")) return false;
+  if (e.endsWith("@orbit.app")) return false;
+  return true;
+}
+
 const FROM = env("EMAIL_FROM") || "Orbit <onboarding@resend.dev>";
 
 export interface SendEmailInput {
@@ -108,6 +119,41 @@ export function coffeeBookedEmail(opts: {
     </p>
   `);
   const text = `Coffee booked with ${opts.otherName}${role}.
+When: ${opts.whenLabel}
+Where: ${opts.venue}
+Add to calendar: ${opts.calendarUrl}`;
+  return { subject, html, text };
+}
+
+// Sent to the OTHER person — the one the booker chose to meet.
+export function coffeeInvitedEmail(opts: {
+  recipientFirstName: string;
+  bookerName: string;
+  bookerRole?: string | null;
+  whenLabel: string;
+  venue: string;
+  calendarUrl: string;
+}): { subject: string; html: string; text: string } {
+  const role = opts.bookerRole ? ` (${opts.bookerRole})` : "";
+  const subject = `${opts.bookerName} booked a coffee with you`;
+  const html = WRAP(`
+    <h1 style="font-size:22px;margin:0 0 6px;color:#1c1917;">You've got a coffee ☕</h1>
+    <p style="font-size:15px;color:#44403c;margin:0 0 20px;">
+      Hi ${opts.recipientFirstName}, <strong>${opts.bookerName}</strong>${role} picked you as
+      one of their three intros this week and booked a time. Just show up.
+    </p>
+    <table style="width:100%;font-size:14px;color:#1c1917;border-collapse:collapse;">
+      <tr><td style="padding:8px 0;color:#78716c;width:90px;">When</td><td style="padding:8px 0;font-weight:600;">${opts.whenLabel}</td></tr>
+      <tr><td style="padding:8px 0;color:#78716c;">Where</td><td style="padding:8px 0;font-weight:600;">${opts.venue}</td></tr>
+    </table>
+    <a href="${opts.calendarUrl}" style="display:inline-block;margin-top:22px;background:#b45a1f;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 20px;border-radius:10px;">
+      Add to Google Calendar
+    </a>
+    <p style="font-size:13px;color:#9b9183;margin:22px 0 0;">
+      Orbit does the awkward middle. You just show up.
+    </p>
+  `);
+  const text = `${opts.bookerName}${role} booked a coffee with you.
 When: ${opts.whenLabel}
 Where: ${opts.venue}
 Add to calendar: ${opts.calendarUrl}`;
