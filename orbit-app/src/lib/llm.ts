@@ -126,6 +126,8 @@ async function openRouter(
   }
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 async function gemini(
   prompt: string,
   maxTokens: number,
@@ -133,40 +135,53 @@ async function gemini(
   model: string
 ): Promise<ChatResult> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Key in a header, not the URL, so it stays out of logs/proxies.
-        "x-goog-api-key": env("GEMINI_API_KEY") as string,
-      },
-      body: JSON.stringify({
-        ...(opts.system ? { systemInstruction: { parts: [{ text: opts.system }] } } : {}),
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          maxOutputTokens: maxTokens,
-          temperature: opts.temperature ?? 0.5,
-          ...(opts.json ? { responseMimeType: "application/json" } : {}),
+  // Gemini free tier returns 503/429 under load — retry with backoff so a brief
+  // spike doesn't fail the user's request.
+  const delays = [0, 800, 2000];
+  let lastErr = "";
+  for (const delay of delays) {
+    if (delay) await sleep(delay);
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Key in a header, not the URL, so it stays out of logs/proxies.
+          "x-goog-api-key": env("GEMINI_API_KEY") as string,
         },
-      }),
-    });
-    if (!res.ok) {
-      const body = (await res.text()).slice(0, 300);
-      console.warn("[llm] Gemini error", res.status, body);
-      return { text: null, error: `${res.status} ${body}` };
+        body: JSON.stringify({
+          ...(opts.system ? { systemInstruction: { parts: [{ text: opts.system }] } } : {}),
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            maxOutputTokens: maxTokens,
+            temperature: opts.temperature ?? 0.5,
+            ...(opts.json ? { responseMimeType: "application/json" } : {}),
+          },
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.text()).slice(0, 300);
+        console.warn("[llm] Gemini error", res.status, body);
+        lastErr = `${res.status} ${body}`;
+        if (res.status === 503 || res.status === 429) continue; // transient — retry
+        return { text: null, error: lastErr };
+      }
+      const json = (await res.json()) as {
+        candidates?: { content?: { parts?: { text?: string }[] } }[];
+        error?: { message?: string };
+      };
+      const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("").trim();
+      if (!text) {
+        lastErr = json.error?.message || "empty response";
+        continue;
+      }
+      return { text };
+    } catch (e) {
+      console.warn("[llm] Gemini request failed:", e);
+      lastErr = String(e);
     }
-    const json = (await res.json()) as {
-      candidates?: { content?: { parts?: { text?: string }[] } }[];
-      error?: { message?: string };
-    };
-    const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("").trim();
-    if (!text) return { text: null, error: json.error?.message || "empty response" };
-    return { text };
-  } catch (e) {
-    console.warn("[llm] Gemini request failed:", e);
-    return { text: null, error: String(e) };
   }
+  return { text: null, error: lastErr || "unavailable" };
 }
 
 async function anthropic(prompt: string, maxTokens: number, opts: ChatOptions): Promise<ChatResult> {
