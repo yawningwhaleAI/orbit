@@ -3,10 +3,11 @@ import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { lexicalGiveWant } from "@/lib/similarity";
+import { generateSlots, googleCalendarUrl } from "@/lib/slots";
 import { AppNav } from "@/components/app-nav";
-import { Avatar, buttonClass } from "@/components/ui";
+import { Avatar } from "@/components/ui";
 import { ArrowRight, Check, Clock, MapPin, Calendar, X } from "@/components/icons";
-import { respond } from "./actions";
+import { SlotPicker } from "@/components/slot-picker";
 
 export const dynamic = "force-dynamic";
 
@@ -40,9 +41,38 @@ export default async function IntroPage({ params }: { params: { id: string } }) 
   const sub = [match.other.role, match.other.company].filter(Boolean).join(" · ");
   const meetingWhen = match.meeting?.scheduledAt.toLocaleString("en-IN", {
     weekday: "long",
+    day: "numeric",
+    month: "short",
     hour: "numeric",
     minute: "2-digit",
   });
+
+  // Proposed time slots + the other person's in-app availability.
+  const slots = generateSlots();
+  const otherBusy = await db.meeting.findMany({
+    where: {
+      status: { in: ["booked", "held"] },
+      match: { OR: [{ ownerId: match.otherId }, { otherId: match.otherId }] },
+    },
+    select: { scheduledAt: true },
+  });
+  const busy = slots
+    .filter((s) =>
+      otherBusy.some(
+        (m) => Math.abs(new Date(s.iso).getTime() - m.scheduledAt.getTime()) < 60 * 60000
+      )
+    )
+    .map((s) => s.iso);
+
+  const gcalUrl = match.meeting
+    ? googleCalendarUrl({
+        title: `Coffee with ${match.other.name} · Orbit`,
+        start: match.meeting.scheduledAt,
+        minutes: 15,
+        details: match.reason,
+        location: match.meeting.venue,
+      })
+    : "#";
 
   return (
     <>
@@ -132,7 +162,7 @@ export default async function IntroPage({ params }: { params: { id: string } }) 
               <div className="mx-auto mt-4 max-w-xs space-y-2 text-left text-sm">
                 <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-accent-deep" /> {meetingWhen}</div>
                 <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-accent-deep" /> {match.meeting?.venue}</div>
-                <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-accent-deep" /> Added to your calendar</div>
+                <a href={gcalUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 font-medium text-accent-deep hover:underline"><Calendar className="h-4 w-4" /> Add to Google Calendar</a>
               </div>
             </div>
           ) : match.status === "passed" ? (
@@ -144,24 +174,12 @@ export default async function IntroPage({ params }: { params: { id: string } }) 
               <p className="mt-1 text-sm">We&apos;ll find someone better suited next week.</p>
             </div>
           ) : (
-            <>
-              <div className="flex items-center gap-2 px-5 pt-5 text-sm text-ink-soft">
-                <Clock className="h-4 w-4 text-accent-deep" />
-                Proposed: Thursday, 3:00 PM · {match.building.cafeName} · 15 min
-              </div>
-              <div className="grid grid-cols-2 gap-2.5 p-5">
-                <form action={respond}>
-                  <input type="hidden" name="matchId" value={match.id} />
-                  <input type="hidden" name="decision" value="accept" />
-                  <button className={buttonClass("primary") + " w-full"}>Yes, introduce us</button>
-                </form>
-                <form action={respond}>
-                  <input type="hidden" name="matchId" value={match.id} />
-                  <input type="hidden" name="decision" value="pass" />
-                  <button className={buttonClass("pass") + " w-full"}>Pass</button>
-                </form>
-              </div>
-            </>
+            <SlotPicker
+              matchId={match.id}
+              slots={slots}
+              busy={busy}
+              otherFirstName={match.other.name.split(" ")[0]}
+            />
           )}
         </div>
       </main>
