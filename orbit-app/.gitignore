@@ -30,3 +30,6 @@ npm-debug.log*
 .vercel
 .turbo
 coverage
+
+# TypeScript incremental build info
+tsconfig.tsbuildinfo
