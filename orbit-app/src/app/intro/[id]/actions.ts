@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { nextThursday3pm } from "@/lib/week";
 import { googleCalendarUrl } from "@/lib/slots";
-import { sendEmail, coffeeBookedEmail } from "@/lib/email";
+import { sendEmail, coffeeBookedEmail, coffeeInvitedEmail, isSendableAddress } from "@/lib/email";
 
 function parseSlot(v: FormDataEntryValue | null): Date | null {
   const s = String(v || "");
@@ -78,7 +78,23 @@ export async function respond(formData: FormData) {
         venue,
         calendarUrl,
       });
-      await sendEmail({ to: user.email, subject: mail.subject, html: mail.html, text: mail.text });
+      // Notify the booker (always) and the other person (if a real address).
+      const sends: Promise<unknown>[] = [];
+      if (isSendableAddress(user.email)) {
+        sends.push(sendEmail({ to: user.email, subject: mail.subject, html: mail.html, text: mail.text }));
+      }
+      if (isSendableAddress(match.other.email)) {
+        const invite = coffeeInvitedEmail({
+          recipientFirstName: match.other.name.split(" ")[0],
+          bookerName: user.name,
+          bookerRole: user.role,
+          whenLabel,
+          venue,
+          calendarUrl,
+        });
+        sends.push(sendEmail({ to: match.other.email, subject: invite.subject, html: invite.html, text: invite.text }));
+      }
+      await Promise.allSettled(sends);
     } catch (e) {
       console.warn("[intro.respond] email failed:", e);
     }
