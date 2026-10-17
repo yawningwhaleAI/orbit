@@ -38,11 +38,19 @@ export async function chatDetailed(prompt: string, opts: ChatOptions = {}): Prom
   const errors: string[] = [];
 
   // Google Gemini first — its free tier is the most reliable (no data-policy
-  // block, generous limits).
+  // block, generous limits). Try the configured model, then "-latest" aliases
+  // so a renamed model (Google rotates these) doesn't break us.
   if (env("GEMINI_API_KEY")) {
-    const r = await gemini(prompt, maxTokens, opts);
-    if (r.text) return { text: r.text };
-    if (r.error) errors.push(`Gemini: ${r.error}`);
+    const gModels = [
+      env("GEMINI_MODEL") || "gemini-3.8-flash",
+      "gemini-flash-latest",
+      "gemini-2.5-flash",
+    ].filter((m, i, a) => m && a.indexOf(m) === i);
+    for (const model of gModels) {
+      const r = await gemini(prompt, maxTokens, opts, model);
+      if (r.text) return { text: r.text };
+      if (r.error) errors.push(`Gemini[${model}]: ${r.error}`);
+    }
   }
 
   if (env("OPENROUTER_API_KEY")) {
@@ -118,8 +126,12 @@ async function openRouter(
   }
 }
 
-async function gemini(prompt: string, maxTokens: number, opts: ChatOptions): Promise<ChatResult> {
-  const model = env("GEMINI_MODEL") || "gemini-2.0-flash";
+async function gemini(
+  prompt: string,
+  maxTokens: number,
+  opts: ChatOptions,
+  model: string
+): Promise<ChatResult> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
   try {
     const res = await fetch(url, {
