@@ -25,17 +25,15 @@ export async function saveOnboarding(formData: FormData) {
   const bio = String(formData.get("bio") || "").trim() || null;
   const floorRaw = String(formData.get("floor") || "").trim();
   const floor = floorRaw ? Math.max(0, Math.min(200, parseInt(floorRaw, 10) || 0)) : null;
-  const code = String(formData.get("inviteCode") || "DLF-TOWER").trim().toUpperCase();
 
   const gives = splitList(formData.get("gives"));
   const wants = splitList(formData.get("wants"));
 
-  // Resolve building from invite code; fall back to the first building (demo).
-  const invite = await db.inviteCode.findUnique({ where: { code } });
+  // Building is chosen from a dropdown; validate it exists, else fall back.
+  const chosen = String(formData.get("buildingId") || "").trim();
+  const valid = chosen ? await db.building.findUnique({ where: { id: chosen }, select: { id: true } }) : null;
   const buildingId =
-    invite?.buildingId ??
-    (await db.building.findFirst({ select: { id: true } }))?.id ??
-    null;
+    valid?.id ?? (await db.building.findFirst({ select: { id: true } }))?.id ?? null;
 
   await db.profileTag.deleteMany({ where: { userId: user.id } });
   await db.user.update({

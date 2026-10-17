@@ -84,6 +84,7 @@ function ChipSelect({
 
 export function OnboardingForm({
   defaults,
+  buildings,
   giveOptions,
   wantOptions,
   seniority,
@@ -96,9 +97,11 @@ export function OnboardingForm({
     floor?: number | null;
     seniority?: string | null;
     bio?: string | null;
+    buildingId?: string | null;
     gives: string[];
     wants: string[];
   };
+  buildings: { id: string; name: string }[];
   giveOptions: string[];
   wantOptions: string[];
   seniority: { value: string; label: string }[];
@@ -114,6 +117,20 @@ export function OnboardingForm({
     <form action={saveOnboarding} className="space-y-6">
       <input type="hidden" name="gives" value={gives.join("|")} />
       <input type="hidden" name="wants" value={wants.join("|")} />
+
+      <div>
+        <label className={lbl}>Which building do you work in?</label>
+        <select name="buildingId" defaultValue={defaults.buildingId ?? ""} required className={input}>
+          <option value="" disabled>
+            Select your building…
+          </option>
+          {buildings.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
@@ -156,12 +173,6 @@ export function OnboardingForm({
 
       <ChipSelect label="I can give" tone="give" options={giveOptions} value={gives} onChange={setGives} />
       <ChipSelect label="I want" tone="want" options={wantOptions} value={wants} onChange={setWants} />
-
-      <div>
-        <label className={lbl}>Building invite code</label>
-        <input name="inviteCode" defaultValue="DLF-TOWER" className={input} />
-        <p className="mt-1 text-xs text-ink-faint">Given by your building. Demo code: DLF-TOWER.</p>
-      </div>
 
       <button type="submit" className={buttonClass("primary") + " w-full"}>
         Finish & see my intros <ArrowRight className="h-4 w-4" />

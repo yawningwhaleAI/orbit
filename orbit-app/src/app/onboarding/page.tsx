@@ -1,14 +1,22 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { AppNav } from "@/components/app-nav";
 import { Eyebrow } from "@/components/ui";
 import { OnboardingForm } from "@/components/onboarding-form";
 import { GIVE_SUGGESTIONS, WANT_SUGGESTIONS, SENIORITY } from "@/lib/tags";
 
+export const dynamic = "force-dynamic";
+
 export default async function OnboardingPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.isOperator) redirect("/dashboard");
+
+  const buildings = await db.building.findMany({
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
 
   const gives = user.tags.filter((t) => t.kind === "give").map((t) => t.label);
   const wants = user.tags.filter((t) => t.kind === "want").map((t) => t.label);
@@ -35,9 +43,11 @@ export default async function OnboardingPage() {
             floor: user.floor,
             seniority: user.seniority,
             bio: user.bio,
+            buildingId: user.buildingId,
             gives,
             wants,
           }}
+          buildings={buildings}
           giveOptions={GIVE_SUGGESTIONS}
           wantOptions={WANT_SUGGESTIONS}
           seniority={SENIORITY}
