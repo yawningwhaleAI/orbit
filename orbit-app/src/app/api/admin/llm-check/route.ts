@@ -22,8 +22,12 @@ async function handle(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
+  const gkey = process.env.GEMINI_API_KEY?.trim() || "";
   const key = process.env.OPENROUTER_API_KEY?.trim() || "";
   const config = {
+    gemini_key_present: !!gkey,
+    gemini_key_length: gkey.length,
+    gemini_model: process.env.GEMINI_MODEL?.trim() || "(default) gemini-2.0-flash",
     openrouter_key_present: !!key,
     openrouter_key_length: key.length,
     openrouter_model: process.env.OPENROUTER_MODEL?.trim() || "(default) meta-llama/llama-3.3-70b-instruct:free",

@@ -12,7 +12,7 @@ function env(key: string): string | undefined {
 }
 
 export function llmEnabled(): boolean {
-  return !!(env("OPENROUTER_API_KEY") || env("ANTHROPIC_API_KEY"));
+  return !!(env("GEMINI_API_KEY") || env("OPENROUTER_API_KEY") || env("ANTHROPIC_API_KEY"));
 }
 
 export interface ChatOptions {
@@ -36,6 +36,14 @@ export async function chat(prompt: string, opts: ChatOptions = {}): Promise<stri
 export async function chatDetailed(prompt: string, opts: ChatOptions = {}): Promise<ChatResult> {
   const maxTokens = opts.maxTokens ?? 300;
   const errors: string[] = [];
+
+  // Google Gemini first — its free tier is the most reliable (no data-policy
+  // block, generous limits).
+  if (env("GEMINI_API_KEY")) {
+    const r = await gemini(prompt, maxTokens, opts);
+    if (r.text) return { text: r.text };
+    if (r.error) errors.push(`Gemini: ${r.error}`);
+  }
 
   if (env("OPENROUTER_API_KEY")) {
     // Try the configured model, then an optional fallback. Free models are
@@ -81,7 +89,8 @@ async function openRouter(
         model,
         max_tokens: maxTokens,
         temperature: opts.temperature ?? 0.5,
-        ...(opts.json ? { response_format: { type: "json_object" } } : {}),
+        // Note: free OpenRouter models often reject response_format, so we rely
+        // on the prompt + extractJson() instead of forcing structured output.
         messages: [
           ...(opts.system ? [{ role: "system", content: opts.system }] : []),
           { role: "user", content: prompt },
@@ -105,6 +114,45 @@ async function openRouter(
     return { text: content };
   } catch (e) {
     console.warn("[llm] OpenRouter request failed:", e);
+    return { text: null, error: String(e) };
+  }
+}
+
+async function gemini(prompt: string, maxTokens: number, opts: ChatOptions): Promise<ChatResult> {
+  const model = env("GEMINI_MODEL") || "gemini-2.0-flash";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // Key in a header, not the URL, so it stays out of logs/proxies.
+        "x-goog-api-key": env("GEMINI_API_KEY") as string,
+      },
+      body: JSON.stringify({
+        ...(opts.system ? { systemInstruction: { parts: [{ text: opts.system }] } } : {}),
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          maxOutputTokens: maxTokens,
+          temperature: opts.temperature ?? 0.5,
+          ...(opts.json ? { responseMimeType: "application/json" } : {}),
+        },
+      }),
+    });
+    if (!res.ok) {
+      const body = (await res.text()).slice(0, 300);
+      console.warn("[llm] Gemini error", res.status, body);
+      return { text: null, error: `${res.status} ${body}` };
+    }
+    const json = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+      error?: { message?: string };
+    };
+    const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("").trim();
+    if (!text) return { text: null, error: json.error?.message || "empty response" };
+    return { text };
+  } catch (e) {
+    console.warn("[llm] Gemini request failed:", e);
     return { text: null, error: String(e) };
   }
 }

@@ -19,7 +19,13 @@ function satisfies(gives: string[], wants: string[]): string[] {
   return out;
 }
 
-export default async function IntroPage({ params }: { params: { id: string } }) {
+export default async function IntroPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { error?: string };
+}) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
@@ -47,22 +53,31 @@ export default async function IntroPage({ params }: { params: { id: string } }) 
     minute: "2-digit",
   });
 
-  // Proposed time slots + the other person's in-app availability.
-  const slots = generateSlots();
-  const otherBusy = await db.meeting.findMany({
+  // Proposed time slots. Hide any slot where EITHER person already has a coffee
+  // booked, so you only ever see times you're both actually free.
+  const slots = generateSlots(new Date(), 40); // ~2 weeks, so enough remain after filtering
+  const busyMeetings = await db.meeting.findMany({
     where: {
       status: { in: ["booked", "held"] },
-      match: { OR: [{ ownerId: match.otherId }, { otherId: match.otherId }] },
+      match: {
+        OR: [
+          { ownerId: match.otherId },
+          { otherId: match.otherId },
+          { ownerId: user.id },
+          { otherId: user.id },
+        ],
+      },
     },
     select: { scheduledAt: true },
   });
-  const busy = slots
-    .filter((s) =>
-      otherBusy.some(
-        (m) => Math.abs(new Date(s.iso).getTime() - m.scheduledAt.getTime()) < 60 * 60000
-      )
+  const availableSlots = slots
+    .filter(
+      (s) =>
+        !busyMeetings.some(
+          (m) => Math.abs(new Date(s.iso).getTime() - m.scheduledAt.getTime()) < 60 * 60000
+        )
     )
-    .map((s) => s.iso);
+    .slice(0, 8);
 
   const gcalUrl = match.meeting
     ? googleCalendarUrl({
@@ -81,6 +96,12 @@ export default async function IntroPage({ params }: { params: { id: string } }) 
         <Link href="/home" className="mb-4 inline-flex items-center gap-1 text-sm text-ink-faint hover:text-ink">
           ← This week
         </Link>
+
+        {searchParams?.error === "slot_taken" && (
+          <div className="mb-4 rounded-xl border border-accent bg-[color:var(--accent-tint)] px-4 py-3 text-sm text-accent-deep">
+            That time was just booked. Please pick another slot below.
+          </div>
+        )}
 
         <div className="overflow-hidden rounded-2xl border border-line bg-elev shadow-lg">
           <div className="flex items-center justify-between border-b border-line bg-[linear-gradient(180deg,var(--accent-tint),transparent)] px-5 py-3">
@@ -176,8 +197,7 @@ export default async function IntroPage({ params }: { params: { id: string } }) 
           ) : (
             <SlotPicker
               matchId={match.id}
-              slots={slots}
-              busy={busy}
+              slots={availableSlots}
               otherFirstName={match.other.name.split(" ")[0]}
             />
           )}
