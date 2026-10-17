@@ -43,11 +43,13 @@ npm run build          # production build
 Add to `.env` and everything upgrades automatically:
 
 ```bash
-OPENAI_API_KEY=...      # embeddings-based matching
-ANTHROPIC_API_KEY=...   # Claude-written "why you two"
+OPENROUTER_API_KEY=...  # LLM for "why you two" + resume autofill (recommended)
+# or ANTHROPIC_API_KEY=...   # same LLM features, direct to Anthropic
+OPENAI_API_KEY=...      # optional: embeddings-based matching
 ```
 
-Without them the app still matches and explains, using the deterministic fallback.
+Without an LLM key the app still matches and explains (deterministic fallback)
+and onboarding works manually — only the resume autofill needs a key.
 
 ## Deploy (Vercel)
 
