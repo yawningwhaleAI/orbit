@@ -27,7 +27,7 @@ async function handle(req: NextRequest) {
   const config = {
     gemini_key_present: !!gkey,
     gemini_key_length: gkey.length,
-    gemini_model: process.env.GEMINI_MODEL?.trim() || "(default) gemini-2.0-flash",
+    gemini_model: process.env.GEMINI_MODEL?.trim() || "(default) gemini-3.8-flash",
     openrouter_key_present: !!key,
     openrouter_key_length: key.length,
     openrouter_model: process.env.OPENROUTER_MODEL?.trim() || "(default) meta-llama/llama-3.3-70b-instruct:free",
