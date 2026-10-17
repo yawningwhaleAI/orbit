@@ -1,108 +1,86 @@
-# Deploying Orbit (production backend + live URL)
+# Deploying Orbit to Vercel (live, with a real database)
 
-The app runs on SQLite locally. For a live deployment it needs a real
-**Postgres** database. This guide uses **Neon** (free Postgres) + **Vercel**
-(hosting). Total time: ~15 minutes. You only do this once.
+The app is deploy-ready. On Vercel it automatically switches Prisma to Postgres
+and creates the tables — **no manual schema edits**. You only need to: create
+the project, attach a Postgres database, set a few env vars, and (optionally)
+load demo data with one click.
+
+Prerequisites: your GitHub is already connected to Vercel, and `main` has the
+full project.
 
 ---
 
-## Step 1 — Create a free Postgres database (Neon)
+## 1. Create the app's Vercel project
 
-1. Go to **https://neon.tech** and sign up (free tier is plenty for the pilot).
-2. Create a project (name it `orbit`). Pick a region near your users (e.g.
-   Singapore / Mumbai for India).
-3. Copy the **connection string** it shows — it looks like:
-   ```
-   postgresql://USER:PASSWORD@ep-xxxx.ap-southeast-1.aws.neon.tech/orbit?sslmode=require
-   ```
-   Keep it handy for Step 3.
+1. Go to **https://vercel.com/new**.
+2. Import **`yawningwhaleAI/orbit`**.
+3. **Root Directory → set to `orbit-app`** (click Edit, choose the folder). This
+   is the most important setting.
+4. Framework auto-detects **Next.js**. Leave build/output at defaults.
+5. Name it e.g. **`orbit-app`** (keep your existing `orbit` project for the
+   landing page).
+6. Don't deploy yet — add the database and env vars first (or deploy, then add
+   them and redeploy).
 
-> Alternatives that work identically: **Vercel Postgres** (create it from the
-> Vercel dashboard → Storage) or **Supabase** (Project → Settings → Database →
-> Connection string, "URI"). Any Postgres URL works.
+## 2. Attach a Postgres database (Vercel Postgres)
 
-## Step 2 — Switch Prisma to Postgres (one line)
+1. In the new project → **Storage → Create Database → Postgres** → create.
+2. Connect it to the project when prompted. This auto-injects the database env
+   vars (`DATABASE_URL` and a direct/unpooled URL) into the project. The app
+   picks the right one automatically.
 
-Edit `orbit-app/prisma/schema.prisma` — change the datasource provider:
+## 3. Environment variables
 
-```prisma
-datasource db {
-  provider = "postgresql"   // was "sqlite"
-  url      = env("DATABASE_URL")
-}
+Project → **Settings → Environment Variables** → add (Production + Preview):
+
+| Name | Value |
+|---|---|
+| `AUTH_SECRET` | a long random string (one is provided in chat, or run `openssl rand -base64 32`) |
+| `CRON_SECRET` | a random string (provided in chat) |
+| `OPENROUTER_API_KEY` | your (rotated) OpenRouter key |
+| `OPENROUTER_MODEL` | `meta-llama/llama-3.3-70b-instruct:free` |
+
+(The database vars from step 2 are already there.)
+
+## 4. Deploy
+
+Trigger a deploy (Deployments → Redeploy, or push to `main`). The build:
+- switches Prisma to Postgres,
+- creates all tables in your database,
+- builds the Next.js app.
+
+Your live URL: `https://<project>.vercel.app`.
+
+## 5. Load demo data (one click, optional)
+
+The database starts empty. To populate the DLF Tower demo (so you can log in as
+`demo@orbit.app` / `operator@orbit.app` and see matches), visit **once**:
+
+```
+https://<project>.vercel.app/api/admin/seed?secret=<CRON_SECRET>
 ```
 
-You can do this directly on GitHub (open the file → pencil icon → commit), or
-locally and push. Commit the change.
+It seeds the four buildings + members and this week's intros. It's safe: it
+won't touch the data again unless you add `&force=1`. Skip this entirely if you
+only want real signups.
 
-## Step 3 — Create the Vercel project
+## 6. Weekly matching
 
-1. Go to **https://vercel.com/new** and import **`yawningwhaleAI/orbit`**.
-2. **Important:** set **Root Directory** to **`orbit-app`**.
-3. Framework preset will auto-detect **Next.js** — leave the defaults.
-4. Add **Environment Variables** (Settings → Environment Variables):
-   | Name | Value |
-   |---|---|
-   | `DATABASE_URL` | your Neon connection string from Step 1 |
-   | `AUTH_SECRET` | a long random string (run `openssl rand -base64 32`) |
-   | `CRON_SECRET` | any random string |
-   | `OPENAI_API_KEY` | *(optional)* enables embeddings matching |
-   | `ANTHROPIC_API_KEY` | *(optional)* enables Claude "why you two" |
-5. Click **Deploy**.
-
-## Step 4 — Create the tables + seed demo data (one time)
-
-The database is empty on first deploy. Create the schema and demo data by
-pointing your **local** machine at the production database once:
-
-```bash
-cd orbit-app
-# put the Neon URL in .env.local (overrides .env; never commit it)
-echo 'DATABASE_URL="postgresql://...your neon url..."' > .env.local
-npm run db:push     # creates all tables in Postgres
-npm run db:seed     # seeds DLF Tower + members + this week's intros
-```
-
-(Delete `.env.local` afterward if you don't want local commands hitting prod.)
-
-Your live site is now at `https://<project>.vercel.app`. Log in with
-`demo@orbit.app` / `operator@orbit.app`.
-
-## Step 5 — Weekly matching runs automatically
-
-`vercel.json` already schedules the matcher every Monday 09:00 UTC via Vercel
-Cron (`/api/cron/weekly-match`). Vercel sends the `CRON_SECRET` automatically.
-You can also trigger it manually any time:
-```
-curl -X POST "https://<project>.vercel.app/api/cron/weekly-match?secret=<CRON_SECRET>"
-```
+Runs automatically every Monday 09:00 UTC via Vercel Cron (`vercel.json`).
+Manual run: `POST https://<project>.vercel.app/api/cron/weekly-match?secret=<CRON_SECRET>`.
 
 ---
 
 ## Custom domain
 
-In the Vercel project → **Settings → Domains → Add**. Two paths:
+Project → **Settings → Domains → Add**. Buy through Vercel for zero-config DNS,
+or buy elsewhere (Cloudflare/Namecheap) and point the DNS records Vercel shows.
+Typical: `app.yourdomain.com` → this app; `yourdomain.com` → the landing page
+project.
 
-- **Buy the domain through Vercel** (easiest): DNS + SSL are configured
-  automatically, nothing to wire up. Costs a little more than a registrar.
-- **Buy it cheaper elsewhere** (Cloudflare, Namecheap, GoDaddy) and add it as a
-  custom domain in Vercel for free: Vercel shows you the DNS records (an `A`
-  record and/or `CNAME`) to paste into your registrar. SSL is still automatic.
-
-**Recommendation:** if you want zero hassle, buy it on Vercel. If you care about
-the lowest price and already use Cloudflare, buy there and point it at Vercel —
-it's a 5-minute DNS step and free on Vercel's side.
-
-> Note: the **marketing landing page** (`index.html` at the repo root) and the
-> **app** (`orbit-app`) are two separate Vercel projects. Common setup: point
-> `orbit.app` (or your domain) at the landing page, and `app.orbit.app` at the
-> app. Add each domain/subdomain to its respective Vercel project.
-
----
-
-## What still needs real credentials (later)
-
-- **Google sign-in + two-way calendar availability** — requires a Google Cloud
-  OAuth client (Calendar API scope). Once added, the slot picker can show each
-  person's real free/busy instead of in-app availability.
-- **WhatsApp / email notifications** — Gupshup/Twilio + Resend keys.
+## Notes
+- Local dev is unaffected: it stays on SQLite (`npm run dev`).
+- Secrets live only in Vercel env settings and your local `.env.local` — never
+  in the committed `.env`.
+- Free OpenRouter models are rate-limited; switch `OPENROUTER_MODEL` to a cheap
+  paid model (e.g. `openai/gpt-4o-mini`) if you hit limits.
