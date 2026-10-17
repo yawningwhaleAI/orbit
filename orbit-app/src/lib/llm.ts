@@ -28,7 +28,7 @@ export async function chat(prompt: string, opts: ChatOptions = {}): Promise<stri
 }
 
 async function openRouter(prompt: string, maxTokens: number, opts: ChatOptions): Promise<string | null> {
-  const model = process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
+  const model = process.env.OPENROUTER_MODEL || "meta-llama/llama-3.3-70b-instruct:free";
   try {
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
