@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { logout } from "@/app/actions";
 import { Wordmark, Eyebrow, LinkButton, Avatar } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { ArrowRight, Spark, Users, Calendar, Clock, MapPin } from "@/components/icons";
+import { ArrowRight, Spark, Users, Calendar, Clock } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -81,10 +81,21 @@ export default async function LandingPage() {
               <div className="mt-4 space-y-2">
                 {meetings.map((m) => {
                   const other = m.match.ownerId === user.id ? m.match.other : m.match.owner;
+                  const needsYou = m.status === "proposed" && m.proposedById !== user.id;
+                  const isPast = m.status === "held";
+                  const badge = isPast
+                    ? "Met"
+                    : m.status === "confirmed" || m.status === "booked"
+                      ? "Confirmed"
+                      : needsYou
+                        ? "Confirm?"
+                        : "Awaiting them";
+                  const badgeLit = !isPast && (m.status === "confirmed" || m.status === "booked" || needsYou);
                   return (
-                    <div
+                    <Link
                       key={m.id}
-                      className="flex items-center gap-4 rounded-2xl border border-line bg-elev p-4"
+                      href={`/meeting/${m.id}`}
+                      className="flex items-center gap-4 rounded-2xl border border-line bg-elev p-4 transition hover:border-line-strong"
                     >
                       <Avatar name={other.name} size={44} />
                       <div className="min-w-0 flex-1">
@@ -93,8 +104,17 @@ export default async function LandingPage() {
                           {[other.role, other.company].filter(Boolean).join(" · ")}
                         </div>
                       </div>
-                      <div className="hidden text-right text-sm text-ink-soft sm:block">
-                        <div className="flex items-center justify-end gap-1.5">
+                      <div className="text-right text-sm">
+                        <span
+                          className={`inline-block rounded-full px-2.5 py-1 text-[0.7rem] font-semibold ${
+                            badgeLit
+                              ? "bg-[color:var(--accent-tint)] text-accent-deep"
+                              : "bg-sunken text-ink-faint"
+                          }`}
+                        >
+                          {badge}
+                        </span>
+                        <div className="mt-1 hidden items-center justify-end gap-1.5 text-ink-soft sm:flex">
                           <Clock className="h-4 w-4 text-accent-deep" />
                           {m.scheduledAt.toLocaleString("en-IN", {
                             weekday: "short",
@@ -104,11 +124,8 @@ export default async function LandingPage() {
                             minute: "2-digit",
                           })}
                         </div>
-                        <div className="flex items-center justify-end gap-1.5 text-ink-faint">
-                          <MapPin className="h-3.5 w-3.5" /> {m.venue}
-                        </div>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -223,7 +240,7 @@ export default async function LandingPage() {
 async function getMeetings(userId: string) {
   return db.meeting.findMany({
     where: {
-      status: { in: ["booked", "held"] },
+      status: { in: ["proposed", "confirmed", "booked", "held"] },
       match: { OR: [{ ownerId: userId }, { otherId: userId }] },
     },
     include: { match: { include: { owner: true, other: true } } },

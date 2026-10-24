@@ -30,8 +30,13 @@ export async function requestMagicLink(formData: FormData) {
   if (emailEnabled()) {
     const raw = await createLoginToken(email, name);
     const mail = magicLinkEmail({ url: magicLinkUrl(raw), isSignup });
-    await sendEmail({ to: email, subject: mail.subject, html: mail.html, text: mail.text });
-    // Always show the same confirmation (don't leak whether the email exists).
+    // Best-effort send: a provider hiccup must not throw the action. We still
+    // show the confirmation (and don't leak whether the email exists).
+    try {
+      await sendEmail({ to: email, subject: mail.subject, html: mail.html, text: mail.text });
+    } catch (e) {
+      console.warn("[requestMagicLink] email send failed:", e);
+    }
     redirect(`/login?sent=1&mode=${isSignup ? "signup" : "login"}`);
   }
 

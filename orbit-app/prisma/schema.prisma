@@ -133,11 +133,15 @@ model Match {
 }
 
 model Meeting {
-  id          String   @id @default(cuid())
-  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  matchId     String   @unique
-  scheduledAt DateTime
-  venue       String
-  status      String   @default("booked") // booked | held | cancelled
-  createdAt   DateTime @default(now())
+  id           String    @id @default(cuid())
+  match        Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId      String    @unique
+  scheduledAt  DateTime
+  venue        String
+  // proposed  = one side picked a time, awaiting the other's confirmation
+  // confirmed = both agreed | declined | cancelled | held (past, took place)
+  status       String    @default("proposed")
+  proposedById String? // who proposed the current time (for two-sided confirm)
+  respondedAt  DateTime? // when the other side accepted/declined
+  createdAt    DateTime  @default(now())
 }

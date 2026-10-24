@@ -35,7 +35,12 @@ export default async function DashboardPage() {
       include: { owner: true, other: true },
       orderBy: { createdAt: "desc" },
     }),
-    db.meeting.findMany({ where: { match: { buildingId: building.id } } }),
+    db.meeting.findMany({
+      where: {
+        match: { buildingId: building.id },
+        status: { in: ["proposed", "confirmed", "booked", "held"] },
+      },
+    }),
   ]);
 
   const responded = matches.filter((m) => m.status === "accepted" || m.status === "passed");

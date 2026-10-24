@@ -34,11 +34,16 @@ export async function consumeLoginToken(
   raw: string
 ): Promise<{ email: string; name?: string | null } | null> {
   if (!raw) return null;
-  const rec = await db.loginToken.findUnique({ where: { tokenHash: hash(raw) } });
+  const tokenHash = hash(raw);
+  const rec = await db.loginToken.findUnique({ where: { tokenHash } });
   if (!rec) return null;
-  if (rec.usedAt) return null;
   if (rec.expiresAt.getTime() < Date.now()) return null;
-  // Mark used immediately (single-use).
-  await db.loginToken.update({ where: { id: rec.id }, data: { usedAt: new Date() } });
+  // Claim atomically: only the first caller flips usedAt from null, so a token
+  // is reliably single-use even if two requests race (e.g. link prefetch).
+  const claim = await db.loginToken.updateMany({
+    where: { tokenHash, usedAt: null },
+    data: { usedAt: new Date() },
+  });
+  if (claim.count === 0) return null;
   return { email: rec.email, name: rec.name };
 }
