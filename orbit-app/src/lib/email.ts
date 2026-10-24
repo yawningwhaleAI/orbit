@@ -91,6 +91,31 @@ const WRAP = (inner: string) => `
   </div>
 </div>`;
 
+export function magicLinkEmail(opts: {
+  url: string;
+  isSignup: boolean;
+}): { subject: string; html: string; text: string } {
+  const subject = opts.isSignup ? "Finish signing up for Orbit" : "Your Orbit sign-in link";
+  const html = WRAP(`
+    <h1 style="font-size:22px;margin:0 0 6px;color:#1c1917;">${
+      opts.isSignup ? "Welcome to Orbit" : "Sign in to Orbit"
+    }</h1>
+    <p style="font-size:15px;color:#44403c;margin:0 0 20px;">
+      Click the button below to ${opts.isSignup ? "create your account" : "sign in"}. This link
+      works once and expires in 20 minutes.
+    </p>
+    <a href="${opts.url}" style="display:inline-block;background:#b45a1f;color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:13px 24px;border-radius:10px;">
+      ${opts.isSignup ? "Create my account" : "Sign in"}
+    </a>
+    <p style="font-size:13px;color:#9b9183;margin:22px 0 0;">
+      If you didn't request this, you can ignore this email. Link: <br/>
+      <span style="word-break:break-all;color:#78716c;">${opts.url}</span>
+    </p>
+  `);
+  const text = `${opts.isSignup ? "Create your Orbit account" : "Sign in to Orbit"} (link works once, expires in 20 min):\n${opts.url}`;
+  return { subject, html, text };
+}
+
 export function coffeeBookedEmail(opts: {
   memberFirstName: string;
   otherName: string;

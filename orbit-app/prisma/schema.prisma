@@ -83,6 +83,20 @@ model User {
   updatedAt     DateTime  @updatedAt
 }
 
+// One-time magic-link sign-in tokens. We store only a hash of the token; the
+// raw token lives only in the emailed link. Single-use (usedAt) + short expiry.
+model LoginToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  email     String
+  name      String?
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}
+
 model ProfileTag {
   id        String   @id @default(cuid())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
