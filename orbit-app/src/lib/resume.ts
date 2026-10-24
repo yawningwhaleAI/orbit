@@ -64,13 +64,19 @@ export async function parseResume(text: string): Promise<ParsedResume | null> {
     "",
     "Resume:",
     '"""',
-    text.slice(0, 9000),
+    text.slice(0, 6000),
     '"""',
     "",
     "Return only the JSON object.",
   ].join("\n");
 
-  const raw = await chat(prompt, { system, maxTokens: 600, temperature: 0.2, json: true });
+  const raw = await chat(prompt, {
+    system,
+    maxTokens: 500,
+    temperature: 0.2,
+    json: true,
+    timeoutMs: 45000,
+  });
   if (!raw) return null;
 
   const json = extractJson(raw);

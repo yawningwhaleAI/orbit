@@ -20,6 +20,24 @@ export interface ChatOptions {
   maxTokens?: number;
   temperature?: number;
   json?: boolean; // ask the provider for a JSON object response
+  timeoutMs?: number; // per-request timeout (default 40s) so slow free models
+  // return a clean error instead of hanging past the serverless limit
+}
+
+// fetch with an abort-based timeout so a slow/hung provider can't exceed the
+// serverless function budget (which would surface to the user as "Upload failed").
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal });
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 export interface ChatResult {
@@ -85,7 +103,7 @@ async function openRouter(
   model: string
 ): Promise<ChatResult> {
   try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const res = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -104,7 +122,7 @@ async function openRouter(
           { role: "user", content: prompt },
         ],
       }),
-    });
+    }, opts.timeoutMs ?? 40000);
     if (!res.ok) {
       const body = (await res.text()).slice(0, 300);
       console.warn("[llm] OpenRouter error", res.status, body);
@@ -142,7 +160,7 @@ async function gemini(
   for (const delay of delays) {
     if (delay) await sleep(delay);
     try {
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -158,7 +176,7 @@ async function gemini(
             ...(opts.json ? { responseMimeType: "application/json" } : {}),
           },
         }),
-      });
+      }, opts.timeoutMs ?? 40000);
       if (!res.ok) {
         const body = (await res.text()).slice(0, 300);
         console.warn("[llm] Gemini error", res.status, body);
@@ -189,7 +207,7 @@ async function gemini(
 async function anthropic(prompt: string, maxTokens: number, opts: ChatOptions): Promise<ChatResult> {
   const model = env("ANTHROPIC_MODEL") || "claude-sonnet-5";
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetchWithTimeout("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -202,7 +220,7 @@ async function anthropic(prompt: string, maxTokens: number, opts: ChatOptions): 
         ...(opts.system ? { system: opts.system } : {}),
         messages: [{ role: "user", content: prompt }],
       }),
-    });
+    }, opts.timeoutMs ?? 40000);
     if (!res.ok) {
       const body = (await res.text()).slice(0, 300);
       console.warn("[llm] Anthropic error", res.status, body);

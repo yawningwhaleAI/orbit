@@ -188,14 +188,20 @@ export async function seedDemo({ force = false } = {}): Promise<SeedResult> {
     where: { buildingId: dlfId, ownerId: { not: demo?.id } },
     take: 10,
   });
-  for (const mt of others.slice(0, 5)) {
+  const picked = others.slice(0, 5);
+  for (let i = 0; i < picked.length; i++) {
+    const mt = picked[i];
     await db.match.update({ where: { id: mt.id }, data: { status: "accepted", respondedAt: new Date() } });
+    // Mix of confirmed upcoming and past-held coffees for a lively dashboard.
+    const held = i >= 3;
     await db.meeting.create({
       data: {
         matchId: mt.id,
-        scheduledAt: new Date(Date.now() + 2 * 24 * 3600 * 1000),
+        scheduledAt: new Date(Date.now() + (held ? -2 : 2) * 24 * 3600 * 1000),
         venue: "the ground-floor cafe, DLF Tower",
-        status: "held",
+        status: held ? "held" : "confirmed",
+        proposedById: mt.ownerId,
+        respondedAt: new Date(),
       },
     });
   }

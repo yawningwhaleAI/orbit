@@ -91,6 +91,107 @@ const WRAP = (inner: string) => `
   </div>
 </div>`;
 
+export function magicLinkEmail(opts: {
+  url: string;
+  isSignup: boolean;
+}): { subject: string; html: string; text: string } {
+  const subject = opts.isSignup ? "Finish signing up for Orbit" : "Your Orbit sign-in link";
+  const html = WRAP(`
+    <h1 style="font-size:22px;margin:0 0 6px;color:#1c1917;">${
+      opts.isSignup ? "Welcome to Orbit" : "Sign in to Orbit"
+    }</h1>
+    <p style="font-size:15px;color:#44403c;margin:0 0 20px;">
+      Click the button below to ${opts.isSignup ? "create your account" : "sign in"}. This link
+      works once and expires in 20 minutes.
+    </p>
+    <a href="${opts.url}" style="display:inline-block;background:#b45a1f;color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:13px 24px;border-radius:10px;">
+      ${opts.isSignup ? "Create my account" : "Sign in"}
+    </a>
+    <p style="font-size:13px;color:#9b9183;margin:22px 0 0;">
+      If you didn't request this, you can ignore this email. Link: <br/>
+      <span style="word-break:break-all;color:#78716c;">${opts.url}</span>
+    </p>
+  `);
+  const text = `${opts.isSignup ? "Create your Orbit account" : "Sign in to Orbit"} (link works once, expires in 20 min):\n${opts.url}`;
+  return { subject, html, text };
+}
+
+export function coffeeProposedEmail(opts: {
+  recipientFirstName: string;
+  proposerName: string;
+  proposerRole?: string | null;
+  whenLabel: string;
+  venue: string;
+  meetingUrl: string;
+}): { subject: string; html: string; text: string } {
+  const role = opts.proposerRole ? ` (${opts.proposerRole})` : "";
+  const subject = `${opts.proposerName} wants to grab a coffee`;
+  const html = WRAP(`
+    <h1 style="font-size:22px;margin:0 0 6px;color:#1c1917;">A coffee invite ☕</h1>
+    <p style="font-size:15px;color:#44403c;margin:0 0 18px;">
+      Hi ${opts.recipientFirstName}, <strong>${opts.proposerName}</strong>${role} picked you as one
+      of their intros this week and proposed a time. Confirm it, or suggest another.
+    </p>
+    <table style="width:100%;font-size:14px;color:#1c1917;border-collapse:collapse;">
+      <tr><td style="padding:8px 0;color:#78716c;width:90px;">When</td><td style="padding:8px 0;font-weight:600;">${opts.whenLabel}</td></tr>
+      <tr><td style="padding:8px 0;color:#78716c;">Where</td><td style="padding:8px 0;font-weight:600;">${opts.venue}</td></tr>
+    </table>
+    <a href="${opts.meetingUrl}" style="display:inline-block;margin-top:20px;background:#b45a1f;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 20px;border-radius:10px;">
+      Confirm or reschedule
+    </a>
+  `);
+  const text = `${opts.proposerName}${role} proposed a coffee.
+When: ${opts.whenLabel}
+Where: ${opts.venue}
+Confirm or reschedule: ${opts.meetingUrl}`;
+  return { subject, html, text };
+}
+
+export function coffeeConfirmedEmail(opts: {
+  recipientFirstName: string;
+  otherName: string;
+  whenLabel: string;
+  venue: string;
+  calendarUrl: string;
+}): { subject: string; html: string; text: string } {
+  const subject = `Coffee confirmed with ${opts.otherName}`;
+  const html = WRAP(`
+    <h1 style="font-size:22px;margin:0 0 6px;color:#1c1917;">Coffee confirmed ✓</h1>
+    <p style="font-size:15px;color:#44403c;margin:0 0 18px;">
+      Hi ${opts.recipientFirstName}, you're all set to meet <strong>${opts.otherName}</strong>.
+    </p>
+    <table style="width:100%;font-size:14px;color:#1c1917;border-collapse:collapse;">
+      <tr><td style="padding:8px 0;color:#78716c;width:90px;">When</td><td style="padding:8px 0;font-weight:600;">${opts.whenLabel}</td></tr>
+      <tr><td style="padding:8px 0;color:#78716c;">Where</td><td style="padding:8px 0;font-weight:600;">${opts.venue}</td></tr>
+    </table>
+    <a href="${opts.calendarUrl}" style="display:inline-block;margin-top:20px;background:#b45a1f;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 20px;border-radius:10px;">
+      Add to Google Calendar
+    </a>
+  `);
+  const text = `Coffee confirmed with ${opts.otherName}.
+When: ${opts.whenLabel}
+Where: ${opts.venue}
+Add to calendar: ${opts.calendarUrl}`;
+  return { subject, html, text };
+}
+
+export function coffeeCancelledEmail(opts: {
+  recipientFirstName: string;
+  otherName: string;
+  whenLabel: string;
+}): { subject: string; html: string; text: string } {
+  const subject = `Coffee with ${opts.otherName} was cancelled`;
+  const html = WRAP(`
+    <h1 style="font-size:22px;margin:0 0 6px;color:#1c1917;">Coffee cancelled</h1>
+    <p style="font-size:15px;color:#44403c;margin:0 0 6px;">
+      Hi ${opts.recipientFirstName}, your coffee with <strong>${opts.otherName}</strong>
+      (${opts.whenLabel}) has been cancelled. No worries — Orbit will suggest someone new.
+    </p>
+  `);
+  const text = `Your coffee with ${opts.otherName} (${opts.whenLabel}) was cancelled.`;
+  return { subject, html, text };
+}
+
 export function coffeeBookedEmail(opts: {
   memberFirstName: string;
   otherName: string;

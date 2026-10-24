@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -67,11 +68,21 @@ export default async function HomePage() {
             <Eyebrow>Booked coffees</Eyebrow>
             <div className="space-y-2">
               {accepted.map((i) => (
-                <div
+                <Link
                   key={i.id}
-                  className="flex items-center justify-between rounded-xl border border-line bg-elev px-4 py-3 text-sm"
+                  href={`/meeting/${i.meeting!.id}`}
+                  className="flex items-center justify-between rounded-xl border border-line bg-elev px-4 py-3 text-sm transition hover:border-line-strong"
                 >
-                  <span className="font-medium">{i.other.name}</span>
+                  <span className="font-medium">
+                    {i.other.name}
+                    <span className="ml-2 text-[0.7rem] font-semibold uppercase tracking-wide text-ink-faint">
+                      {i.meeting!.status === "held"
+                        ? "· met"
+                        : i.meeting!.status === "confirmed" || i.meeting!.status === "booked"
+                          ? "· confirmed"
+                          : "· pending"}
+                    </span>
+                  </span>
                   <span className="text-ink-faint">
                     {i.meeting!.scheduledAt.toLocaleDateString("en-IN", {
                       weekday: "short",
@@ -80,7 +91,7 @@ export default async function HomePage() {
                     })}{" "}
                     · {i.meeting!.venue}
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

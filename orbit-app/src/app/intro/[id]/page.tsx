@@ -3,10 +3,10 @@ import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { lexicalGiveWant } from "@/lib/similarity";
-import { generateSlots, googleCalendarUrl } from "@/lib/slots";
+import { availableSlots as computeAvailableSlots } from "@/lib/meetings";
 import { AppNav } from "@/components/app-nav";
 import { Avatar } from "@/components/ui";
-import { ArrowRight, Check, Clock, MapPin, Calendar, X } from "@/components/icons";
+import { ArrowRight, Check, Clock, MapPin, X } from "@/components/icons";
 import { SlotPicker } from "@/components/slot-picker";
 
 export const dynamic = "force-dynamic";
@@ -53,41 +53,8 @@ export default async function IntroPage({
     minute: "2-digit",
   });
 
-  // Proposed time slots. Hide any slot where EITHER person already has a coffee
-  // booked, so you only ever see times you're both actually free.
-  const slots = generateSlots(new Date(), 40); // ~2 weeks, so enough remain after filtering
-  const busyMeetings = await db.meeting.findMany({
-    where: {
-      status: { in: ["booked", "held"] },
-      match: {
-        OR: [
-          { ownerId: match.otherId },
-          { otherId: match.otherId },
-          { ownerId: user.id },
-          { otherId: user.id },
-        ],
-      },
-    },
-    select: { scheduledAt: true },
-  });
-  const availableSlots = slots
-    .filter(
-      (s) =>
-        !busyMeetings.some(
-          (m) => Math.abs(new Date(s.iso).getTime() - m.scheduledAt.getTime()) < 60 * 60000
-        )
-    )
-    .slice(0, 8);
-
-  const gcalUrl = match.meeting
-    ? googleCalendarUrl({
-        title: `Coffee with ${match.other.name} · Orbit`,
-        start: match.meeting.scheduledAt,
-        minutes: 15,
-        details: match.reason,
-        location: match.meeting.venue,
-      })
-    : "#";
+  // Proposed time slots — only times where BOTH people are free.
+  const availableSlots = await computeAvailableSlots([user.id, match.otherId], match.id);
 
   return (
     <>
@@ -171,20 +138,26 @@ export default async function IntroPage({
           )}
 
           {/* When + actions */}
-          {match.status === "accepted" ? (
+          {match.status === "accepted" && match.meeting ? (
             <div className="m-5 rounded-xl border border-line bg-elev p-5 text-center animate-fade-up">
               <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-[color:var(--accent-tint)] text-accent-deep">
                 <Check className="h-6 w-6" />
               </div>
-              <h3 className="font-serif text-xl">Coffee booked</h3>
+              <h3 className="font-serif text-xl">
+                {match.meeting.status === "confirmed" ? "Coffee confirmed" : "Coffee proposed"}
+              </h3>
               <p className="mt-1 text-sm text-ink-soft">
-                We&apos;ve let {match.other.name.split(" ")[0]} know.
+                {match.meeting.status === "confirmed"
+                  ? `You're set to meet ${match.other.name.split(" ")[0]}.`
+                  : `Waiting for ${match.other.name.split(" ")[0]} to confirm.`}
               </p>
               <div className="mx-auto mt-4 max-w-xs space-y-2 text-left text-sm">
                 <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-accent-deep" /> {meetingWhen}</div>
-                <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-accent-deep" /> {match.meeting?.venue}</div>
-                <a href={gcalUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 font-medium text-accent-deep hover:underline"><Calendar className="h-4 w-4" /> Add to Google Calendar</a>
+                <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-accent-deep" /> {match.meeting.venue}</div>
               </div>
+              <Link href={`/meeting/${match.meeting.id}`} className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent-deep hover:underline">
+                Manage this coffee <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           ) : match.status === "passed" ? (
             <div className="m-5 rounded-xl border border-line bg-sunken p-5 text-center text-ink-soft animate-fade-up">
