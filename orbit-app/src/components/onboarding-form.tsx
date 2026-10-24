@@ -129,7 +129,14 @@ export function OnboardingForm({
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/parse-resume", { method: "POST", body: fd });
-      const json = await res.json();
+      // Parse defensively: a timeout/5xx can return non-JSON, which must not
+      // crash into a generic "Upload failed".
+      const json = await res.json().catch(() => null);
+      if (!json) {
+        setResumeState("error");
+        setResumeMsg("The AI took too long. Try again, or just fill the form manually below.");
+        return;
+      }
       if (!json.ok) {
         setResumeState("error");
         setResumeMsg(json.message || "Couldn't read that resume. Fill the form manually.");
