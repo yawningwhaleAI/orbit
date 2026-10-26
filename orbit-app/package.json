@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/ensure-env.mjs",
     "dev": "next dev",
     "build": "node scripts/vercel-prebuild.mjs && prisma generate && next build",
     "start": "next start",
@@ -10,7 +11,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "setup": "prisma db push && tsx prisma/seed.ts",
+    "setup": "node scripts/ensure-env.mjs && prisma db push && tsx prisma/seed.ts",
     "match:run": "tsx scripts/run-matching.ts"
   },
   "prisma": {

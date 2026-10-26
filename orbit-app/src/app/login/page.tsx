@@ -68,7 +68,9 @@ export default async function LoginPage({
         <p className="mt-4 rounded-lg border border-accent bg-[color:var(--accent-tint)] px-3 py-2 text-sm text-accent-deep">
           {searchParams.error === "expired"
             ? "That sign-in link has expired or was already used. Enter your email to get a fresh one."
-            : "Please enter a valid email."}
+            : searchParams.error === "unavailable"
+              ? "Sign-in is temporarily unavailable. Please try again shortly."
+              : "Please enter a valid email."}
         </p>
       )}
 

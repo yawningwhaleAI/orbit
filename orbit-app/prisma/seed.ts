@@ -1,9 +1,9 @@
 // CLI seed: `npm run db:seed`. Wipes and reseeds demo data (DLF Tower + the
 // four Gurugram buildings) and generates this week's introductions.
 //
-// Demo logins (email dev login):
-//   demo@orbit.app      -> "You" (founder) — explore the member app
-//   operator@orbit.app  -> operator dashboard
+// Demo accounts use reserved, undeliverable @example.com emails (so no one can
+// claim them via magic link). In local dev (no email provider) you can sign in
+// directly with any email, e.g. demo@example.com or operator@example.com.
 
 import { seedDemo } from "../src/lib/seed";
 import { db } from "../src/lib/db";
@@ -11,7 +11,7 @@ import { db } from "../src/lib/db";
 seedDemo({ force: true })
   .then((r) => {
     console.log("Seed complete:", r);
-    console.log("\nLog in at /login with demo@orbit.app or operator@orbit.app");
+    console.log("\nDev login at /login with any email, e.g. demo@example.com (member) or operator@example.com (operator).");
   })
   .catch((e) => {
     console.error(e);

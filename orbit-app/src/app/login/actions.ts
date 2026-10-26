@@ -3,9 +3,11 @@
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { setSessionCookie } from "@/lib/auth";
-import { emailEnabled, sendEmail, magicLinkEmail } from "@/lib/email";
+import { setSessionCookie, authReady } from "@/lib/auth";
+import { emailEnabled, sendEmail, magicLinkEmail, isSendableAddress } from "@/lib/email";
 import { createLoginToken, magicLinkUrl } from "@/lib/magic";
+
+const IS_PROD = process.env.NODE_ENV === "production";
 
 const schema = z.object({
   email: z.string().email(),
@@ -27,7 +29,13 @@ export async function requestMagicLink(formData: FormData) {
   const { email, name, mode } = parsed.data;
   const isSignup = mode !== "login";
 
-  if (emailEnabled()) {
+  // Secure path: email a one-time magic link (verified sign-in).
+  if (emailEnabled() && authReady) {
+    // Never send to reserved/demo domains (undeliverable → hard bounces). Show
+    // the same confirmation so we don't leak which addresses exist.
+    if (!isSendableAddress(email)) {
+      redirect(`/login?sent=1&mode=${isSignup ? "signup" : "login"}`);
+    }
     const raw = await createLoginToken(email, name);
     const mail = magicLinkEmail({ url: magicLinkUrl(raw), isSignup });
     // Best-effort send: a provider hiccup must not throw the action. We still
@@ -40,8 +48,13 @@ export async function requestMagicLink(formData: FormData) {
     redirect(`/login?sent=1&mode=${isSignup ? "signup" : "login"}`);
   }
 
-  // Fallback: no email provider configured — sign in directly so the app
-  // remains usable in dev / before Resend is set up.
+  // In production we NEVER sign in without verifying the email (no "log in as
+  // anyone"). If email/auth isn't configured, sign-in is unavailable.
+  if (IS_PROD) {
+    redirect("/login?error=unavailable");
+  }
+
+  // Dev convenience only: no email provider locally — sign in directly.
   await directSignIn(email, name);
 }
 

@@ -15,13 +15,11 @@ export const maxDuration = 60;
 
 async function handle(req: NextRequest) {
   const secret = process.env.CRON_SECRET?.trim();
-  if (secret) {
-    const auth = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-    const url = new URL(req.url);
-    const qp = (url.searchParams.get("secret") || "").trim();
-    if (auth !== secret && qp !== secret) {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-    }
+  // Require the secret via Authorization header (Vercel Cron sends it
+  // automatically). No query-param secret — it would leak into logs.
+  const auth = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  if (!secret || auth !== secret) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const results = await generateForAllBuildings();

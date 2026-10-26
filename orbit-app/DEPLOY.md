@@ -35,12 +35,14 @@ Project → **Settings → Environment Variables** → add (Production + Preview
 
 | Name | Value |
 |---|---|
-| `AUTH_SECRET` | a long random string (one is provided in chat, or run `openssl rand -base64 32`) |
-| `CRON_SECRET` | a random string (provided in chat) |
-| `OPENROUTER_API_KEY` | your (rotated) OpenRouter key |
-| `OPENROUTER_MODEL` | `meta-llama/llama-3.3-70b-instruct:free` |
+| `AUTH_SECRET` | **required** — 32+ random chars (`openssl rand -base64 32`). If missing/weak in prod, sign-in is disabled (never falls back to a default). |
+| `CRON_SECRET` | **required** — random string; protects admin + cron endpoints (sent as `Authorization: Bearer`). |
+| `RESEND_API_KEY` | **required for login** — enables magic-link sign-in + emails. Verify a domain in Resend to email anyone. |
+| `EMAIL_FROM` | e.g. `Orbit <hello@withinorbit.space>` |
+| `GEMINI_API_KEY` / `OPENROUTER_API_KEY` | optional — AI matching + resume parsing |
 
-(The database vars from step 2 are already there.)
+(The database vars from step 2 are already there.) Changing `AUTH_SECRET` logs
+out all existing sessions.
 
 ## 4. Deploy
 
@@ -53,21 +55,25 @@ Your live URL: `https://<project>.vercel.app`.
 
 ## 5. Load demo data (one click, optional)
 
-The database starts empty. To populate the DLF Tower demo (so you can log in as
-`demo@orbit.app` / `operator@orbit.app` and see matches), visit **once**:
+The database starts empty. To populate the DLF Tower demo (four buildings +
+members + this week's intros), run once (secret in the header, not the URL):
 
 ```
-https://<project>.vercel.app/api/admin/seed?secret=<CRON_SECRET>
+curl -X POST -H "Authorization: Bearer <CRON_SECRET>" \
+  https://<project>.vercel.app/api/admin/seed            # seed if empty
+curl -X POST -H "Authorization: Bearer <CRON_SECRET>" \
+  "https://<project>.vercel.app/api/admin/seed?force=1"  # wipe + reseed
 ```
 
-It seeds the four buildings + members and this week's intros. It's safe: it
-won't touch the data again unless you add `&force=1`. Skip this entirely if you
-only want real signups.
+Safe by default: it won't touch a populated DB unless you pass `force=1`. Demo
+accounts use reserved `@example.com` emails that can't receive mail (so they
+can't be claimed). Skip this entirely if you only want real signups.
 
 ## 6. Weekly matching
 
 Runs automatically every Monday 09:00 UTC via Vercel Cron (`vercel.json`).
-Manual run: `POST https://<project>.vercel.app/api/cron/weekly-match?secret=<CRON_SECRET>`.
+Manual run:
+`curl -X POST -H "Authorization: Bearer <CRON_SECRET>" https://<project>.vercel.app/api/cron/weekly-match`.
 
 ---
 

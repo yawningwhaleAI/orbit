@@ -18,16 +18,22 @@ member app, and the operator dashboard. Marketing site lives at the repo root
 
 ```bash
 npm install
-npm run setup     # creates the SQLite db + seeds DLF Tower and generates intros
+npm run setup     # copies .env.example -> .env, creates the SQLite db, seeds + generates intros
 npm run dev       # http://localhost:3000
 ```
 
-Log in at `/login`:
-- **Member:** `demo@orbit.app`
-- **Operator:** `operator@orbit.app`
+`setup`/`dev` create a local `.env` from `.env.example` automatically (it's
+gitignored and holds no real secrets). For production, set `AUTH_SECRET`,
+`CRON_SECRET`, `RESEND_API_KEY` and `DATABASE_URL` in your host's env settings.
 
-(Dev login is email-only — no password. Any new email creates a member and
-sends them through onboarding.)
+Log in at `/login` (local dev signs in directly — any email works):
+- **Member:** `demo@example.com`
+- **Operator:** `operator@example.com`
+
+In **production**, sign-in is a verified **magic link** emailed via Resend —
+there is no password and no direct login. Set `AUTH_SECRET` (>=32 chars) and
+`RESEND_API_KEY` for it to work. Demo accounts use reserved `@example.com`
+addresses that can never receive mail, so they can't be claimed.
 
 ## Useful scripts
 
