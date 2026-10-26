@@ -20,28 +20,28 @@ type Seed = {
 };
 
 const MEMBERS: Seed[] = [
-  { email: "demo@orbit.app", name: "You", role: "Founder", company: "Seed-stage startup", floor: 9, seniority: "founder", education: "Georgia Tech", bio: "Building a seed-stage product company. Figuring out first go-to-market and early hiring.", gives: ["Product strategy", "Hiring advice", "Engineering mentorship"], wants: ["A GTM / growth partner", "Fundraising intros", "First customers"] },
+  { email: "demo@example.com", name: "You", role: "Founder", company: "Seed-stage startup", floor: 9, seniority: "founder", education: "Georgia Tech", bio: "Building a seed-stage product company. Figuring out first go-to-market and early hiring.", gives: ["Product strategy", "Hiring advice", "Engineering mentorship"], wants: ["A GTM / growth partner", "Fundraising intros", "First customers"] },
   // Test account — real inbox, so the booking confirmation email actually arrives.
   { email: "aryanaiagents@gmail.com", name: "Aryan (Test)", role: "Founder", company: "Scoutwise", floor: 10, seniority: "founder", education: "Masters' Union", bio: "Testing Orbit end to end. Building an AI research tool for founders.", gives: ["Product strategy", "Data & analytics", "Fundraising advice"], wants: ["A GTM / growth partner", "Hiring (engineering)", "Design feedback"] },
-  { email: "priya@orbit.app", name: "Priya Nair", role: "Head of GTM", company: "Meridian", floor: 3, seniority: "senior", education: "Wharton MBA", bio: "Launched three products to market. Love helping founders find their first wedge.", gives: ["Go-to-market help", "Sales & BD intros", "Marketing & brand"], wants: ["Product feedback", "Fundraising intros", "Hiring (design)"] },
-  { email: "rohan@orbit.app", name: "Rohan Mehta", role: "Design Lead", company: "Loop Studio", floor: 11, seniority: "senior", education: "NID Ahmedabad", bio: "Design systems and product design. Hiring a founding designer this quarter.", gives: ["Design feedback", "Figma / design systems", "Portfolio reviews"], wants: ["Hiring (design)", "A technical co-founder", "Fundraising intros"] },
-  { email: "ananya@orbit.app", name: "Ananya Rao", role: "Angel investor", company: "Rao Capital", floor: 14, seniority: "investor", education: "IIM Bangalore", bio: "Angel in pre-seed and seed. Backing technical founders in B2B and fintech.", gives: ["Angel / investor intros", "Fundraising advice", "Finance & accounting"], wants: ["Portfolio reviews", "Partnerships", "Customer intros"] },
-  { email: "devin@orbit.app", name: "Devin Alvarez", role: "Backend Engineer", company: "Northwind", floor: 6, seniority: "senior", education: "BITS Pilani", bio: "Distributed systems and platform engineering. Tinkering on a side project.", gives: ["Systems architecture", "Engineering mentorship", "Data & analytics"], wants: ["A design partner", "Portfolio reviews", "Product feedback"] },
-  { email: "sana@orbit.app", name: "Sana Kapoor", role: "Growth Marketer", company: "Brightfold", floor: 7, seniority: "mid", education: "SRCC Delhi", bio: "Performance and content growth for early-stage SaaS.", gives: ["Content & growth", "Marketing & brand"], wants: ["A mentor", "Hiring (engineering)", "Product feedback"] },
-  { email: "karan@orbit.app", name: "Karan Singh", role: "Founder", company: "LedgerIQ", floor: 5, seniority: "founder", education: "IIT Delhi", bio: "Fintech founder, raising a seed round. Strong on engineering, learning GTM.", gives: ["Systems architecture", "Engineering mentorship"], wants: ["Fundraising intros", "Angel investors", "A GTM / growth partner"] },
-  { email: "neha@orbit.app", name: "Neha Gupta", role: "Product Manager", company: "Tideline", floor: 8, seniority: "mid", education: "Delhi University", bio: "B2B product manager. Curious about design and early-stage startups.", gives: ["Product strategy", "Customer intros"], wants: ["Design feedback", "A mentor", "Advice on scaling"] },
-  { email: "vikram@orbit.app", name: "Vikram Shetty", role: "Engineering Manager", company: "Northwind", floor: 6, seniority: "senior", education: "NIT Trichy", bio: "Lead a backend team. Mentor junior engineers and hire often.", gives: ["Engineering mentorship", "Hiring advice", "Systems architecture"], wants: ["Marketing help", "Partnerships"] },
-  { email: "aisha@orbit.app", name: "Aisha Khan", role: "Corporate Lawyer", company: "Khan & Co", floor: 12, seniority: "senior", education: "NLSIU Bangalore", bio: "Startup and commercial law. Happy to help founders with contracts.", gives: ["Legal / compliance"], wants: ["Customer intros", "Partnerships"] },
-  { email: "arjun@orbit.app", name: "Arjun Verma", role: "Data Scientist", company: "Tideline", floor: 8, seniority: "mid", education: "ISI Kolkata", bio: "ML and analytics. Want to move into a founding role eventually.", gives: ["Data & analytics"], wants: ["A mentor", "A technical co-founder", "Fundraising intros"] },
-  { email: "meera@orbit.app", name: "Meera Iyer", role: "Brand Designer", company: "Loop Studio", floor: 11, seniority: "mid", education: "Srishti Institute", bio: "Brand and visual identity for startups.", gives: ["Design feedback", "Marketing & brand"], wants: ["Hiring (engineering)", "Advice on scaling", "A mentor"] },
-  { email: "rahul@orbit.app", name: "Rahul Desai", role: "Sales Lead", company: "Brightfold", floor: 7, seniority: "senior", education: "XLRI Jamshedpur", bio: "Enterprise sales. Can open doors to mid-market customers.", gives: ["Sales & BD intros", "Customer intros", "Go-to-market help"], wants: ["Product feedback", "Fundraising intros"] },
-  { email: "tara@orbit.app", name: "Tara Menon", role: "Ops Lead", company: "Meridian", floor: 3, seniority: "senior", education: "FMS Delhi", bio: "Operations and scaling for growth-stage teams.", gives: ["Operations & scaling", "Finance & accounting"], wants: ["A mentor", "Partnerships", "Hiring (engineering)"] },
+  { email: "priya@example.com", name: "Priya Nair", role: "Head of GTM", company: "Meridian", floor: 3, seniority: "senior", education: "Wharton MBA", bio: "Launched three products to market. Love helping founders find their first wedge.", gives: ["Go-to-market help", "Sales & BD intros", "Marketing & brand"], wants: ["Product feedback", "Fundraising intros", "Hiring (design)"] },
+  { email: "rohan@example.com", name: "Rohan Mehta", role: "Design Lead", company: "Loop Studio", floor: 11, seniority: "senior", education: "NID Ahmedabad", bio: "Design systems and product design. Hiring a founding designer this quarter.", gives: ["Design feedback", "Figma / design systems", "Portfolio reviews"], wants: ["Hiring (design)", "A technical co-founder", "Fundraising intros"] },
+  { email: "ananya@example.com", name: "Ananya Rao", role: "Angel investor", company: "Rao Capital", floor: 14, seniority: "investor", education: "IIM Bangalore", bio: "Angel in pre-seed and seed. Backing technical founders in B2B and fintech.", gives: ["Angel / investor intros", "Fundraising advice", "Finance & accounting"], wants: ["Portfolio reviews", "Partnerships", "Customer intros"] },
+  { email: "devin@example.com", name: "Devin Alvarez", role: "Backend Engineer", company: "Northwind", floor: 6, seniority: "senior", education: "BITS Pilani", bio: "Distributed systems and platform engineering. Tinkering on a side project.", gives: ["Systems architecture", "Engineering mentorship", "Data & analytics"], wants: ["A design partner", "Portfolio reviews", "Product feedback"] },
+  { email: "sana@example.com", name: "Sana Kapoor", role: "Growth Marketer", company: "Brightfold", floor: 7, seniority: "mid", education: "SRCC Delhi", bio: "Performance and content growth for early-stage SaaS.", gives: ["Content & growth", "Marketing & brand"], wants: ["A mentor", "Hiring (engineering)", "Product feedback"] },
+  { email: "karan@example.com", name: "Karan Singh", role: "Founder", company: "LedgerIQ", floor: 5, seniority: "founder", education: "IIT Delhi", bio: "Fintech founder, raising a seed round. Strong on engineering, learning GTM.", gives: ["Systems architecture", "Engineering mentorship"], wants: ["Fundraising intros", "Angel investors", "A GTM / growth partner"] },
+  { email: "neha@example.com", name: "Neha Gupta", role: "Product Manager", company: "Tideline", floor: 8, seniority: "mid", education: "Delhi University", bio: "B2B product manager. Curious about design and early-stage startups.", gives: ["Product strategy", "Customer intros"], wants: ["Design feedback", "A mentor", "Advice on scaling"] },
+  { email: "vikram@example.com", name: "Vikram Shetty", role: "Engineering Manager", company: "Northwind", floor: 6, seniority: "senior", education: "NIT Trichy", bio: "Lead a backend team. Mentor junior engineers and hire often.", gives: ["Engineering mentorship", "Hiring advice", "Systems architecture"], wants: ["Marketing help", "Partnerships"] },
+  { email: "aisha@example.com", name: "Aisha Khan", role: "Corporate Lawyer", company: "Khan & Co", floor: 12, seniority: "senior", education: "NLSIU Bangalore", bio: "Startup and commercial law. Happy to help founders with contracts.", gives: ["Legal / compliance"], wants: ["Customer intros", "Partnerships"] },
+  { email: "arjun@example.com", name: "Arjun Verma", role: "Data Scientist", company: "Tideline", floor: 8, seniority: "mid", education: "ISI Kolkata", bio: "ML and analytics. Want to move into a founding role eventually.", gives: ["Data & analytics"], wants: ["A mentor", "A technical co-founder", "Fundraising intros"] },
+  { email: "meera@example.com", name: "Meera Iyer", role: "Brand Designer", company: "Loop Studio", floor: 11, seniority: "mid", education: "Srishti Institute", bio: "Brand and visual identity for startups.", gives: ["Design feedback", "Marketing & brand"], wants: ["Hiring (engineering)", "Advice on scaling", "A mentor"] },
+  { email: "rahul@example.com", name: "Rahul Desai", role: "Sales Lead", company: "Brightfold", floor: 7, seniority: "senior", education: "XLRI Jamshedpur", bio: "Enterprise sales. Can open doors to mid-market customers.", gives: ["Sales & BD intros", "Customer intros", "Go-to-market help"], wants: ["Product feedback", "Fundraising intros"] },
+  { email: "tara@example.com", name: "Tara Menon", role: "Ops Lead", company: "Meridian", floor: 3, seniority: "senior", education: "FMS Delhi", bio: "Operations and scaling for growth-stage teams.", gives: ["Operations & scaling", "Finance & accounting"], wants: ["A mentor", "Partnerships", "Hiring (engineering)"] },
 
   // --- Real members (from provided resumes), placed in DLF Tower ---
-  { email: "aryan.singh@orbit.app", name: "Aryan Singh", role: "Strategy & Analytics", company: "Vikabh Securities", floor: 9, seniority: "senior", education: "Masters' Union · VIT", bio: "Strategy and analytics operator across trading, D2C and engineering; building Scoutwise, an AI research tool for founders.", gives: ["Data & analytics", "Product strategy", "Fundraising advice", "Finance & accounting"], wants: ["A technical co-founder", "Hiring (engineering)", "Customer intros"] },
-  { email: "pragya.rathi@orbit.app", name: "Pragya Rathi", role: "Finance & Business Strategy", company: "Recur Club", floor: 4, seniority: "senior", education: "Masters' Union · CFA L3", bio: "Finance and business strategy; structured 100 Cr+ in debt financing for startups and MSMEs.", gives: ["Finance & accounting", "Fundraising advice", "Data & analytics"], wants: ["Partnerships", "A mentor", "Customer intros"] },
-  { email: "navya.juneja@orbit.app", name: "Navya Juneja", role: "Product Manager", company: "PhonePe", floor: 8, seniority: "mid", education: "Masters' Union · Christ University", bio: "Product manager from PhonePe; pricing, GTM and launch across payments.", gives: ["Product strategy", "Go-to-market help", "Data & analytics"], wants: ["A technical co-founder", "Hiring (design)", "Design feedback"] },
-  { email: "ishani.handa@orbit.app", name: "Ishani Handa", role: "Growth / Category Manager", company: "PhonePe", floor: 7, seniority: "mid", education: "Masters' Union · Christ University", bio: "Category and growth from PhonePe; co-founded a D2C brand.", gives: ["Content & growth", "Marketing & brand", "Customer intros"], wants: ["A technical co-founder", "A mentor", "Product feedback"] },
+  { email: "aryan.singh@example.com", name: "Aryan Singh", role: "Strategy & Analytics", company: "Vikabh Securities", floor: 9, seniority: "senior", education: "Masters' Union · VIT", bio: "Strategy and analytics operator across trading, D2C and engineering; building Scoutwise, an AI research tool for founders.", gives: ["Data & analytics", "Product strategy", "Fundraising advice", "Finance & accounting"], wants: ["A technical co-founder", "Hiring (engineering)", "Customer intros"] },
+  { email: "pragya.rathi@example.com", name: "Pragya Rathi", role: "Finance & Business Strategy", company: "Recur Club", floor: 4, seniority: "senior", education: "Masters' Union · CFA L3", bio: "Finance and business strategy; structured 100 Cr+ in debt financing for startups and MSMEs.", gives: ["Finance & accounting", "Fundraising advice", "Data & analytics"], wants: ["Partnerships", "A mentor", "Customer intros"] },
+  { email: "navya.juneja@example.com", name: "Navya Juneja", role: "Product Manager", company: "PhonePe", floor: 8, seniority: "mid", education: "Masters' Union · Christ University", bio: "Product manager from PhonePe; pricing, GTM and launch across payments.", gives: ["Product strategy", "Go-to-market help", "Data & analytics"], wants: ["A technical co-founder", "Hiring (design)", "Design feedback"] },
+  { email: "ishani.handa@example.com", name: "Ishani Handa", role: "Growth / Category Manager", company: "PhonePe", floor: 7, seniority: "mid", education: "Masters' Union · Christ University", bio: "Category and growth from PhonePe; co-founded a D2C brand.", gives: ["Content & growth", "Marketing & brand", "Customer intros"], wants: ["A technical co-founder", "A mentor", "Product feedback"] },
 ];
 
 const POOL = [
@@ -87,7 +87,7 @@ export async function seedDemo({ force = false } = {}): Promise<SeedResult> {
   await db.operator.deleteMany();
 
   const operator = await db.operator.create({
-    data: { name: "Orbit Pilot Operator", email: "ops@orbit.app", plan: "pilot" },
+    data: { name: "Orbit Pilot Operator", email: "ops@example.com", plan: "pilot" },
   });
 
   const buildingByCode: Record<string, string> = {};
@@ -144,7 +144,7 @@ export async function seedDemo({ force = false } = {}): Promise<SeedResult> {
       const last = LAST[(i * 3) % LAST.length];
       await db.user.create({
         data: {
-          email: `${code.toLowerCase()}-${i}@orbit.app`,
+          email: `${code.toLowerCase()}-${i}@example.com`,
           name: `${first} ${last}`,
           avatarSeed: first[0],
           onboarded: true,
@@ -168,7 +168,7 @@ export async function seedDemo({ force = false } = {}): Promise<SeedResult> {
 
   await db.user.create({
     data: {
-      email: "operator@orbit.app",
+      email: "operator@example.com",
       name: "DLF Tower Ops",
       isOperator: true,
       onboarded: true,
@@ -183,7 +183,7 @@ export async function seedDemo({ force = false } = {}): Promise<SeedResult> {
   }
 
   // Make the operator dashboard look alive; leave demo user's intros open.
-  const demo = await db.user.findUnique({ where: { email: "demo@orbit.app" } });
+  const demo = await db.user.findUnique({ where: { email: "demo@example.com" } });
   const others = await db.match.findMany({
     where: { buildingId: dlfId, ownerId: { not: demo?.id } },
     take: 10,

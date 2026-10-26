@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { setSessionCookie } from "@/lib/auth";
+import { setSessionCookie, authReady } from "@/lib/auth";
 import { consumeLoginToken, appUrl } from "@/lib/magic";
 
 // Magic-link landing. Verifies a one-time token, creates/finds the user, sets
@@ -11,6 +11,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  if (!authReady) {
+    return NextResponse.redirect(`${appUrl()}/login?error=unavailable`);
+  }
   const token = new URL(req.url).searchParams.get("token") || "";
   const result = await consumeLoginToken(token);
 

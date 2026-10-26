@@ -10,11 +10,24 @@ import { SignJWT, jwtVerify } from "jose";
 import { db } from "./db";
 
 const COOKIE = "orbit_session";
-const secret = new TextEncoder().encode(
-  process.env.AUTH_SECRET || "dev-insecure-secret-change-me"
-);
+const IS_PROD = process.env.NODE_ENV === "production";
+
+// Resolve the signing secret WITHOUT an insecure production fallback. In prod we
+// require a real AUTH_SECRET (>=32 chars); if it's missing or weak, auth is
+// DISABLED (no sessions issued or accepted) rather than falling back to a known
+// default that would let anyone forge a session cookie. Dev gets a local secret.
+const RAW = process.env.AUTH_SECRET?.trim();
+const DEV_SECRET = "dev-only-insecure-secret-not-used-in-production-000";
+const effectiveSecret = RAW && RAW.length >= 32 ? RAW : IS_PROD ? null : RAW || DEV_SECRET;
+
+// True when auth can safely operate. When false (prod + no strong secret),
+// login is unavailable and no cookie is trusted — a safe failure, not a hole.
+export const authReady = !!effectiveSecret;
+
+const secret = new TextEncoder().encode(effectiveSecret || "disabled");
 
 export async function signSession(userId: string): Promise<string> {
+  if (!authReady) throw new Error("AUTH_SECRET not configured");
   return new SignJWT({ uid: userId })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -27,7 +40,7 @@ export async function setSessionCookie(userId: string): Promise<void> {
   cookies().set(COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: IS_PROD,
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
   });
@@ -38,6 +51,7 @@ export function clearSessionCookie(): void {
 }
 
 export async function getSessionUserId(): Promise<string | null> {
+  if (!authReady) return null;
   const token = cookies().get(COOKIE)?.value;
   if (!token) return null;
   try {

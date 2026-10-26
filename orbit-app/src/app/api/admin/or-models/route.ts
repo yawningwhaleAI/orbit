@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Lists OpenRouter models that are currently FREE (prompt + completion priced
 // at 0), so we can pick a live free slug for OPENROUTER_MODEL without guessing.
-//   GET /api/admin/or-models?secret=<CRON_SECRET>
+//   curl -H "Authorization: Bearer $CRON_SECRET" https://<host>/api/admin/or-models
 // Protected by CRON_SECRET.
 
 export const runtime = "nodejs";
@@ -11,11 +11,7 @@ export const maxDuration = 30;
 
 async function handle(req: NextRequest) {
   const secret = process.env.CRON_SECRET?.trim();
-  const url = new URL(req.url);
-  const provided =
-    (req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
-      url.searchParams.get("secret") ||
-      "").trim();
+  const provided = (req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "").trim();
   if (!secret || provided !== secret) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }

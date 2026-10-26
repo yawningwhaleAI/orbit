@@ -230,7 +230,12 @@ export default async function LandingPage() {
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-5 py-8 text-sm text-ink-faint">
           <Wordmark />
-          <span>Orbit — the professional network inside your building.</span>
+          <div className="flex items-center gap-4">
+            <span>The professional network inside your building.</span>
+            <Link href="/privacy" className="hover:text-ink">
+              Privacy
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

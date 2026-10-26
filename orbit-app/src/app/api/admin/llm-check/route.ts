@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { chatDetailed } from "@/lib/llm";
 
 // Protected diagnostic for the AI layer (resume parsing uses the same path).
-//   GET /api/admin/llm-check?secret=<CRON_SECRET>
+//   curl -H "Authorization: Bearer $CRON_SECRET" https://<host>/api/admin/llm-check
 // Returns which providers are configured and the exact upstream result/error,
 // so a failing "Couldn't parse the resume" can be diagnosed without log access.
 
@@ -12,11 +12,7 @@ export const maxDuration = 30;
 
 async function handle(req: NextRequest) {
   const secret = process.env.CRON_SECRET?.trim();
-  const url = new URL(req.url);
-  const provided =
-    (req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
-      url.searchParams.get("secret") ||
-      "").trim();
+  const provided = (req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "").trim();
 
   if (!secret || provided !== secret) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
