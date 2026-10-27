@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -17,6 +18,13 @@ export default async function OnboardingPage() {
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
+
+  // Pre-select the building from an invite link (/join/<code>) when the member
+  // hasn't chosen one yet.
+  const joinBuildingId = cookies().get("orbit_join")?.value;
+  const defaultBuildingId =
+    user.buildingId ??
+    (joinBuildingId && buildings.some((b) => b.id === joinBuildingId) ? joinBuildingId : null);
 
   const gives = user.tags.filter((t) => t.kind === "give").map((t) => t.label);
   const wants = user.tags.filter((t) => t.kind === "want").map((t) => t.label);
@@ -43,7 +51,7 @@ export default async function OnboardingPage() {
             floor: user.floor,
             seniority: user.seniority,
             bio: user.bio,
-            buildingId: user.buildingId,
+            buildingId: defaultBuildingId,
             gives,
             wants,
           }}
