@@ -97,7 +97,9 @@ explicitly **not a feed** — no posts, no likes, no DMs.
 - **Match** (directional: owner sees `other`; week key; score/matchPct/reason;
   status proposed|accepted|passed|expired) → one **Meeting**
 - **Meeting** (scheduledAt, venue, **status: proposed|confirmed|cancelled|held**,
-  **proposedById**, respondedAt). Legacy `"booked"` still honored in filters.
+  **proposedById**, respondedAt, **reminderSentAt**). Legacy `"booked"` still honored.
+- **MeetingFeedback** (meetingId, userId, showed, worthwhile, note) — one per
+  participant; drives dashboard show-up / worth-it rates.
 
 ## 6. Auth (magic-link) — `src/lib/auth.ts`, `magic.ts`, `login/`, `api/auth/verify/`
 
@@ -133,6 +135,14 @@ explicitly **not a feed** — no posts, no likes, no DMs.
    calendar link) / **Decline** / **Reschedule**.
 3. Either party can **Cancel** or **Reschedule** (reschedule re-proposes a new
    time needing re-confirm). Clash checks + status guards throughout.
+4. **Day-before reminder** emailed via `/api/cron/coffee-reminders` (daily cron).
+5. After the time passes, `/meeting/[id]` shows a **feedback form** ("Did you
+   meet? Was it worth 15 min?"); submitting marks the meeting `held` and records
+   `MeetingFeedback`. Powers the dashboard's show-up / worth-it rates.
+
+**Invite links:** `/join/<INVITE_CODE>` (e.g. `/join/DLF-TOWER`) pre-selects the
+building (cookie) and sends to sign-up — for QR flyers. Operators see their
+building's join link on the dashboard.
 
 ## 9. Environment variables (set in Vercel → Settings → Environment Variables)
 
@@ -166,6 +176,8 @@ curl -H "Authorization: Bearer <CRON_SECRET>" https://withinorbit.space/api/admi
 curl -H "Authorization: Bearer <CRON_SECRET>" https://withinorbit.space/api/admin/or-models
 # Manual weekly match:
 curl -X POST -H "Authorization: Bearer <CRON_SECRET>" https://withinorbit.space/api/cron/weekly-match
+# Manual coffee reminders:
+curl -X POST -H "Authorization: Bearer <CRON_SECRET>" https://withinorbit.space/api/cron/coffee-reminders
 ```
 `<CRON_SECRET>` lives in Vercel env vars — get it from the dashboard (never commit it).
 
@@ -184,9 +196,16 @@ curl -X POST -H "Authorization: Bearer <CRON_SECRET>" https://withinorbit.space/
 - Live product + custom domain + HTTPS.
 - Public landing, magic-link auth (secure), onboarding (resume autofill PDF/docx),
   weekly 3-intro matching, two-sided booking (confirm/decline/reschedule/cancel),
-  booking + magic-link emails, operator dashboard, privacy page, SEO basics.
+  booking + magic-link emails, privacy page, SEO basics.
+- **Post-coffee feedback loop** + **operator activation dashboard** (funnel,
+  activation rate, show-up & worth-it rates).
+- **Day-before coffee reminders** (daily cron) to lift show-up rate.
+- **Building invite links** (`/join/<code>`) for QR-flyer growth.
 - AI via OpenRouter free models with diagnostics.
 - Security pass addressing the Ship It review (see §13).
+
+**Crons (`vercel.json`):** weekly-match (Mon 09:00 UTC), coffee-reminders
+(daily 02:30 UTC).
 
 **Pending / needs the owner (outside code):**
 1. **Set `AUTH_SECRET` + `RESEND_API_KEY` in Vercel** — until then production
@@ -204,10 +223,12 @@ Fixed in commit `a2dda81`:
 - 🟠 Admin secret in query string → header-only.
 - 🟡 Polish → robots/sitemap/OG/favicon/privacy.
 
-Reviewer's recommended **next features** (high ROI, not yet built):
-1. **Post-coffee feedback loop** ("Was this worth 15 min?") → improves matching + proves value.
-2. **Operator analytics dashboard** with the activation funnel (see §14).
-3. Company-email domain verification on signup (prove members work in the building).
+Reviewer's recommended next features:
+1. ✅ **Post-coffee feedback loop** — built.
+2. ✅ **Operator analytics dashboard** with activation funnel — built.
+3. ⬜ Company-email domain verification on signup (deferred — risky for a pilot
+   where people use personal emails; `InviteCode.emailDomains` allowlist exists
+   to build on). Also: feedback-informed matching, SMS/WhatsApp reminders.
 
 ## 14. Key product metric
 
