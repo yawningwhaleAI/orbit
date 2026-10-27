@@ -142,9 +142,10 @@ model Meeting {
   // confirmed = both agreed | declined | cancelled | held (past, took place)
   status       String    @default("proposed")
   proposedById String? // who proposed the current time (for two-sided confirm)
-  respondedAt  DateTime? // when the other side accepted/declined
-  createdAt    DateTime  @default(now())
-  feedback     MeetingFeedback[]
+  respondedAt    DateTime? // when the other side accepted/declined
+  reminderSentAt DateTime? // when the day-before reminder was sent (de-dupe)
+  createdAt      DateTime  @default(now())
+  feedback       MeetingFeedback[]
 }
 
 // Post-coffee feedback, one row per participant. Drives the operator dashboard

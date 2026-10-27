@@ -178,6 +178,34 @@ Add to calendar: ${opts.calendarUrl}`;
   return { subject, html, text };
 }
 
+export function coffeeReminderEmail(opts: {
+  recipientFirstName: string;
+  otherName: string;
+  whenLabel: string;
+  venue: string;
+  calendarUrl: string;
+}): { subject: string; html: string; text: string } {
+  const subject = `Reminder: coffee with ${opts.otherName}`;
+  const html = WRAP(`
+    <h1 style="font-size:22px;margin:0 0 6px;color:#1c1917;">Coffee soon ☕</h1>
+    <p style="font-size:15px;color:#44403c;margin:0 0 18px;">
+      Hi ${opts.recipientFirstName}, a quick reminder about your coffee with
+      <strong>${opts.otherName}</strong>. Just show up — Orbit did the rest.
+    </p>
+    <table style="width:100%;font-size:14px;color:#1c1917;border-collapse:collapse;">
+      <tr><td style="padding:8px 0;color:#78716c;width:90px;">When</td><td style="padding:8px 0;font-weight:600;">${opts.whenLabel}</td></tr>
+      <tr><td style="padding:8px 0;color:#78716c;">Where</td><td style="padding:8px 0;font-weight:600;">${opts.venue}</td></tr>
+    </table>
+    <a href="${opts.calendarUrl}" style="display:inline-block;margin-top:18px;background:#b45a1f;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:11px 18px;border-radius:10px;">
+      Add to Google Calendar
+    </a>
+  `);
+  const text = `Reminder: coffee with ${opts.otherName}.
+When: ${opts.whenLabel}
+Where: ${opts.venue}`;
+  return { subject, html, text };
+}
+
 export function coffeeCancelledEmail(opts: {
   recipientFirstName: string;
   otherName: string;

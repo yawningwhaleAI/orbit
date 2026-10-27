@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/weekly-match",
       "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/cron/coffee-reminders",
+      "schedule": "30 2 * * *"
     }
   ]
 }
