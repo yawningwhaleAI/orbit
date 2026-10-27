@@ -194,7 +194,7 @@ export async function seedDemo({ force = false } = {}): Promise<SeedResult> {
     await db.match.update({ where: { id: mt.id }, data: { status: "accepted", respondedAt: new Date() } });
     // Mix of confirmed upcoming and past-held coffees for a lively dashboard.
     const held = i >= 3;
-    await db.meeting.create({
+    const meeting = await db.meeting.create({
       data: {
         matchId: mt.id,
         scheduledAt: new Date(Date.now() + (held ? -2 : 2) * 24 * 3600 * 1000),
@@ -204,6 +204,16 @@ export async function seedDemo({ force = false } = {}): Promise<SeedResult> {
         respondedAt: new Date(),
       },
     });
+    // Held coffees get post-coffee feedback from both sides (demo: both showed,
+    // mostly "worth it") so the dashboard show-up / worth-it rates are populated.
+    if (held) {
+      await db.meetingFeedback.createMany({
+        data: [
+          { meetingId: meeting.id, userId: mt.ownerId, showed: true, worthwhile: true },
+          { meetingId: meeting.id, userId: mt.otherId, showed: true, worthwhile: i === 4 ? false : true },
+        ],
+      });
+    }
   }
   for (const mt of others.slice(5, 8)) {
     await db.match.update({ where: { id: mt.id }, data: { status: "passed", respondedAt: new Date() } });

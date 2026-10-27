@@ -82,15 +82,20 @@ export default async function LandingPage() {
                 {meetings.map((m) => {
                   const other = m.match.ownerId === user.id ? m.match.other : m.match.owner;
                   const needsYou = m.status === "proposed" && m.proposedById !== user.id;
-                  const isPast = m.status === "held";
-                  const badge = isPast
-                    ? "Met"
-                    : m.status === "confirmed" || m.status === "booked"
-                      ? "Confirmed"
-                      : needsYou
-                        ? "Confirm?"
-                        : "Awaiting them";
-                  const badgeLit = !isPast && (m.status === "confirmed" || m.status === "booked" || needsYou);
+                  const past = m.scheduledAt.getTime() < Date.now();
+                  const confirmed = m.status === "confirmed" || m.status === "booked";
+                  const badge =
+                    m.status === "held"
+                      ? "Met"
+                      : past && confirmed
+                        ? "How'd it go?"
+                        : confirmed
+                          ? "Confirmed"
+                          : needsYou
+                            ? "Confirm?"
+                            : "Awaiting them";
+                  const badgeLit =
+                    (past && confirmed) || (!past && (confirmed || needsYou));
                   return (
                     <Link
                       key={m.id}
