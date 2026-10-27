@@ -115,3 +115,29 @@ export async function rescheduleMeeting(formData: FormData) {
   revalidatePath(`/meeting/${id}`);
   redirect(`/meeting/${id}`);
 }
+
+// Post-coffee feedback from one participant: did you meet, was it worth it?
+export async function submitFeedback(formData: FormData) {
+  const id = String(formData.get("meetingId") || "");
+  const { user, meeting } = await loadParticipantMeeting(id);
+
+  const showed = String(formData.get("showed") || "") === "yes";
+  const worthwhileRaw = String(formData.get("worthwhile") || "");
+  const worthwhile = showed ? worthwhileRaw === "yes" : null;
+  const note = String(formData.get("note") || "").trim().slice(0, 500) || null;
+
+  await db.meetingFeedback.upsert({
+    where: { meetingId_userId: { meetingId: meeting.id, userId: user.id } },
+    update: { showed, worthwhile, note },
+    create: { meetingId: meeting.id, userId: user.id, showed, worthwhile, note },
+  });
+
+  // Once anyone confirms the coffee happened, mark it held (completed).
+  if (showed && meeting.status !== "held") {
+    await db.meeting.update({ where: { id: meeting.id }, data: { status: "held" } });
+  }
+
+  revalidatePath(`/meeting/${id}`);
+  revalidatePath("/home");
+  redirect(`/meeting/${id}?thanks=1`);
+}

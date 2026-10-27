@@ -144,4 +144,21 @@ model Meeting {
   proposedById String? // who proposed the current time (for two-sided confirm)
   respondedAt  DateTime? // when the other side accepted/declined
   createdAt    DateTime  @default(now())
+  feedback     MeetingFeedback[]
+}
+
+// Post-coffee feedback, one row per participant. Drives the operator dashboard
+// (show-up rate, "worth it" rate) and, later, better matching.
+model MeetingFeedback {
+  id         String   @id @default(cuid())
+  meeting    Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  meetingId  String
+  userId     String   // the participant who left this feedback
+  showed     Boolean  // did the coffee actually happen?
+  worthwhile Boolean? // was it worth 15 minutes? (null if it didn't happen)
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@unique([meetingId, userId])
+  @@index([meetingId])
 }

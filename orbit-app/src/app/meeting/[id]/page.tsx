@@ -8,6 +8,7 @@ import { AppNav } from "@/components/app-nav";
 import { Avatar } from "@/components/ui";
 import { Clock, MapPin, Check } from "@/components/icons";
 import { MeetingActions } from "@/components/meeting-actions";
+import { FeedbackForm } from "@/components/feedback-form";
 
 export const dynamic = "force-dynamic";
 
@@ -16,14 +17,14 @@ export default async function MeetingPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { error?: string };
+  searchParams: { error?: string; thanks?: string };
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
   const meeting = await db.meeting.findUnique({
     where: { id: params.id },
-    include: { match: { include: { owner: true, other: true } } },
+    include: { match: { include: { owner: true, other: true } }, feedback: true },
   });
   if (!meeting) redirect("/home");
 
@@ -32,6 +33,15 @@ export default async function MeetingPage({
 
   const other = match.ownerId === user.id ? match.other : match.owner;
   const role: "proposer" | "invitee" = meeting.proposedById === user.id ? "proposer" : "invitee";
+
+  // Ask for feedback once the coffee's time has passed and this user hasn't
+  // left any yet (and it wasn't cancelled).
+  const isPast = meeting.scheduledAt.getTime() < Date.now();
+  const myFeedback = meeting.feedback.find((f) => f.userId === user.id);
+  const needsFeedback =
+    isPast &&
+    ["confirmed", "booked", "held"].includes(meeting.status) &&
+    !myFeedback;
 
   const whenLabel = meeting.scheduledAt.toLocaleString("en-IN", {
     weekday: "long",
@@ -117,13 +127,24 @@ export default async function MeetingPage({
           </div>
 
           <div className="m-5">
-            <MeetingActions
-              meetingId={meeting.id}
-              role={role}
-              status={meeting.status}
-              slots={slots}
-              calendarUrl={calendarUrl}
-            />
+            {searchParams?.thanks === "1" || myFeedback ? (
+              <div className="rounded-xl border border-line bg-sunken p-4 text-sm text-ink-soft">
+                Thanks for the feedback — it helps us make better intros. 🙌
+              </div>
+            ) : needsFeedback ? (
+              <div className="rounded-xl border border-accent bg-[color:var(--accent-tint)]/40 p-4">
+                <div className="mb-3 text-sm font-semibold text-accent-deep">How did it go?</div>
+                <FeedbackForm meetingId={meeting.id} otherFirstName={other.name.split(" ")[0]} />
+              </div>
+            ) : (
+              <MeetingActions
+                meetingId={meeting.id}
+                role={role}
+                status={meeting.status}
+                slots={slots}
+                calendarUrl={calendarUrl}
+              />
+            )}
           </div>
         </div>
       </main>
