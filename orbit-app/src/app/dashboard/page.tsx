@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import QRCode from "qrcode";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AppNav } from "@/components/app-nav";
@@ -31,6 +32,9 @@ export default async function DashboardPage() {
 
   const invite = await db.inviteCode.findFirst({ where: { buildingId: building.id } });
   const joinUrl = invite ? `https://withinorbit.space/join/${invite.code}` : null;
+  const joinQr = joinUrl
+    ? await QRCode.toDataURL(joinUrl, { margin: 1, width: 200 }).catch(() => null)
+    : null;
 
   const [members, matches, meetings, feedback] = await Promise.all([
     db.user.findMany({
@@ -176,17 +180,25 @@ export default async function DashboardPage() {
         </div>
 
         {joinUrl && (
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent bg-[color:var(--accent-tint)]/40 p-5">
-            <div>
+          <div className="mt-6 flex flex-wrap items-center gap-5 rounded-2xl border border-accent bg-[color:var(--accent-tint)]/40 p-5">
+            {joinQr && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={joinQr}
+                alt={`QR to join ${building.name} on Orbit`}
+                className="h-28 w-28 flex-none rounded-lg bg-white p-1"
+              />
+            )}
+            <div className="min-w-0 flex-1">
               <div className="text-sm font-semibold text-accent-deep">Grow your building</div>
-              <p className="text-xs text-ink-soft">
-                Share this link (or a QR of it) on your floors — new members join {building.name}{" "}
-                directly.
+              <p className="mb-2 text-xs text-ink-soft">
+                Print the QR for your lobby/floors, or share the link — new members join{" "}
+                {building.name} directly.
               </p>
+              <code className="inline-block break-all rounded-lg border border-line bg-elev px-3 py-2 text-sm text-ink">
+                {joinUrl}
+              </code>
             </div>
-            <code className="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-ink">
-              {joinUrl}
-            </code>
           </div>
         )}
 
