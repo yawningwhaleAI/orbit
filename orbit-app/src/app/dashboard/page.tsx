@@ -29,6 +29,9 @@ export default async function DashboardPage() {
     );
   }
 
+  const invite = await db.inviteCode.findFirst({ where: { buildingId: building.id } });
+  const joinUrl = invite ? `https://withinorbit.space/join/${invite.code}` : null;
+
   const [members, matches, meetings, feedback] = await Promise.all([
     db.user.findMany({
       where: { buildingId: building.id, isOperator: false, onboarded: true },
@@ -171,6 +174,21 @@ export default async function DashboardPage() {
             </div>
           ))}
         </div>
+
+        {joinUrl && (
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent bg-[color:var(--accent-tint)]/40 p-5">
+            <div>
+              <div className="text-sm font-semibold text-accent-deep">Grow your building</div>
+              <p className="text-xs text-ink-soft">
+                Share this link (or a QR of it) on your floors — new members join {building.name}{" "}
+                directly.
+              </p>
+            </div>
+            <code className="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-ink">
+              {joinUrl}
+            </code>
+          </div>
+        )}
 
         {/* Activation funnel */}
         <div className="mt-6 rounded-2xl border border-line bg-elev p-6">

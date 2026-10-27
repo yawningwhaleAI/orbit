@@ -8,7 +8,7 @@ import { requestMagicLink } from "./actions";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { error?: string; mode?: string; sent?: string };
+  searchParams: { error?: string; mode?: string; sent?: string; b?: string };
 }) {
   const user = await getCurrentUser();
   if (user) {
@@ -63,6 +63,12 @@ export default async function LoginPage({
           ? "Enter your work email to create your account. Next you'll set up your profile and get your first three intros."
           : "Enter the work email you signed up with to continue."}
       </p>
+
+      {signup && searchParams?.b && (
+        <p className="mt-4 rounded-lg border border-line bg-sunken px-3 py-2 text-sm text-ink-soft">
+          Joining <span className="font-semibold text-ink">{searchParams.b}</span> on Orbit.
+        </p>
+      )}
 
       {searchParams?.error && (
         <p className="mt-4 rounded-lg border border-accent bg-[color:var(--accent-tint)] px-3 py-2 text-sm text-accent-deep">
