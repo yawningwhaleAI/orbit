@@ -7,8 +7,9 @@ import { saveAvailability } from "@/app/availability/actions";
 import { SLOT_TIMES, WEEKDAYS, slotKey } from "@/lib/slots";
 
 function pretty(t: string) {
-  const [h, m] = t.split(":").map(Number);
-  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+  const h = Number(t.split(":")[0]);
+  const f = (x: number) => `${((x + 11) % 12) + 1}`;
+  return `${f(h)}–${f(h + 1)} ${h + 1 >= 12 && h + 1 < 24 ? "PM" : "AM"}`.replace(/^(\d+)–12 AM$/, "$1–12 PM");
 }
 
 export function AvailabilityGrid({ initial, welcome }: { initial: string[]; welcome?: boolean }) {

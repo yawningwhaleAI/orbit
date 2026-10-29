@@ -101,7 +101,7 @@ model LoginToken {
   @@index([email])
 }
 
-// Recurring weekly free slots (IST). weekday 1-5 (Mon-Fri), slot "HH:MM".
+// Recurring weekly free slots (IST). weekday 1-5 (Mon-Fri), slot = hour block start "HH:00" (free for that whole hour).
 model Availability {
   id      String @id @default(cuid())
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -154,6 +154,7 @@ model Meeting {
   match        Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
   matchId      String    @unique
   scheduledAt  DateTime
+  durationMin  Int       @default(30) // 30 or 60
   venue        String
   // proposed  = one side picked a time, awaiting the other's confirmation
   // confirmed = both agreed | declined | cancelled | held (past, took place)

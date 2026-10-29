@@ -32,8 +32,8 @@ export default async function AvailabilityPage({
           When are you free for a <span className="text-accent">coffee</span>?
         </h1>
         <p className="mb-6 mt-2 text-ink-soft">
-          Tap the 15-minute slots that usually work for you, every week. People can only book you
-          in these times (India time). You can change them any time.
+          Tap the hours you're usually free for a coffee, every week (India time). People are offered
+          these times for a 30-minute or 1-hour coffee. You can change them any time.
         </p>
         {searchParams?.saved && (
           <div className="mb-4 rounded-xl border border-accent bg-[color:var(--accent-tint)] px-4 py-3 text-sm text-accent-deep">

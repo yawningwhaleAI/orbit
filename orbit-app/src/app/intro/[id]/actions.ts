@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { nextThursday3pm } from "@/lib/week";
-import { hasClash, isWithinFreeTimes } from "@/lib/meetings";
+import { hasClash, canOffer } from "@/lib/meetings";
+import { parseDuration } from "@/lib/slots";
 import { appUrl } from "@/lib/magic";
 import { sendEmail, isSendableAddress, moreTimesRequestEmail } from "@/lib/email";
 import { notifyMeeting } from "@/lib/meeting-notify";
@@ -38,12 +39,14 @@ export async function respond(formData: FormData) {
   if (decision === "accept") {
     const picked = parseSlot(formData.get("scheduledAt"));
     const when = picked ?? nextThursday3pm();
-    if (picked && !(await isWithinFreeTimes([user.id, match.otherId], picked))) {
+    const durationMin = parseDuration(formData.get("durationMin"));
+    const custom = formData.get("custom") === "1";
+    if (picked && !(await canOffer(match.otherId, picked, durationMin, custom))) {
       redirect(`/intro/${match.id}?error=slot_taken`);
     }
     const venue = `${match.building.cafeName}, ${match.building.name}`;
 
-    if (await hasClash([user.id, match.otherId], when, match.id)) {
+    if (await hasClash([user.id, match.otherId], when, durationMin, match.id)) {
       redirect(`/intro/${match.id}?error=slot_taken`);
     }
 
@@ -54,13 +57,14 @@ export async function respond(formData: FormData) {
 
     const meeting = await db.meeting.upsert({
       where: { matchId: match.id },
-      update: { scheduledAt: when, venue, status: "proposed", proposedById: user.id, respondedAt: null },
-      create: { matchId: match.id, scheduledAt: when, venue, status: "proposed", proposedById: user.id },
+      update: { scheduledAt: when, durationMin, venue, status: "proposed", proposedById: user.id, respondedAt: null },
+      create: { matchId: match.id, scheduledAt: when, durationMin, venue, status: "proposed", proposedById: user.id },
     });
 
     await notifyMeeting("proposed", {
       meetingId: meeting.id,
       scheduledAt: when,
+      durationMin,
       venue,
       reason: match.reason,
       owner: { id: user.id, name: user.name, email: user.email, role: user.role },

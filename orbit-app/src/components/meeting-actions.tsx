@@ -5,23 +5,27 @@ import { clsx } from "clsx";
 import { buttonClass } from "./ui";
 import { Check, Clock } from "./icons";
 import type { Slot } from "@/lib/slots";
+import { TimeChooser } from "./time-chooser";
 import { confirmMeeting, cancelMeeting, rescheduleMeeting } from "@/app/meeting/[id]/actions";
 
 export function MeetingActions({
   meetingId,
   role,
   status,
-  slots,
+  slots30,
+  slots60,
+  otherFirstName,
   calendarUrl,
 }: {
   meetingId: string;
   role: "proposer" | "invitee";
   status: string; // proposed | confirmed | cancelled
-  slots: Slot[];
+  slots30: Slot[];
+  slots60: Slot[];
+  otherFirstName: string;
   calendarUrl?: string;
 }) {
   const [rescheduling, setRescheduling] = useState(false);
-  const [sel, setSel] = useState("");
 
   if (status === "cancelled") {
     return (
@@ -32,45 +36,19 @@ export function MeetingActions({
   }
 
   const reschedulePanel = rescheduling && (
-    <form action={rescheduleMeeting} className="mt-3">
-      <input type="hidden" name="meetingId" value={meetingId} />
-      <input type="hidden" name="scheduledAt" value={sel} />
-      {slots.length === 0 ? (
-        <p className="rounded-xl border border-line bg-sunken p-3 text-sm text-ink-soft">
-          No other shared free times right now — ask them to open up more on their Free times page.
-        </p>
-      ) : (
-        <div className="grid grid-cols-2 gap-2">
-          {slots.map((s) => (
-            <button
-              key={s.iso}
-              type="button"
-              onClick={() => setSel(s.iso)}
-              className={clsx(
-                "rounded-xl border px-3 py-2.5 text-sm transition",
-                sel === s.iso
-                  ? "border-accent bg-[color:var(--accent-tint)] text-accent-deep"
-                  : "border-line-strong text-ink hover:border-accent"
-              )}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-      )}
-      <div className="mt-3 flex gap-2">
-        <button type="submit" disabled={!sel} className={clsx(buttonClass("primary"), "flex-1")}>
-          Propose new time
-        </button>
-        <button
-          type="button"
-          onClick={() => setRescheduling(false)}
-          className={buttonClass("pass")}
-        >
-          Back
-        </button>
-      </div>
-    </form>
+    <div className="mt-4">
+      <TimeChooser
+        action={rescheduleMeeting}
+        hidden={{ meetingId }}
+        submitLabel="Propose new time"
+        slots30={slots30}
+        slots60={slots60}
+        otherFirstName={otherFirstName}
+      />
+      <button type="button" onClick={() => setRescheduling(false)} className={clsx(buttonClass("pass"), "mt-2 w-full")}>
+        Back
+      </button>
+    </div>
   );
 
   return (

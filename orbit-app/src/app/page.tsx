@@ -155,7 +155,7 @@ export default async function LandingPage() {
           <p className="mt-5 max-w-2xl text-lg text-ink-soft">
             Orbit is the professional network for the people who already share your building. Every
             week our matching finds three people worth meeting — someone who can help you, and
-            someone you can help — and books a 15-minute coffee downstairs. No scrolling, no
+            someone you can help — and books a 30-minute coffee downstairs. No scrolling, no
             messaging, no feed. Just one good introduction at a time.
           </p>
           {!user && (
@@ -188,7 +188,7 @@ export default async function LandingPage() {
               {
                 icon: <Calendar className="h-5 w-5" />,
                 title: "Accept — we book the coffee",
-                body: "Pick a 15-minute slot you're both free for. We handle the calendar invite and the email.",
+                body: "Pick a 30-minute or 1-hour slot from their free times. We handle the calendar invite and the email.",
               },
             ].map((s, i) => (
               <div key={i} className="rounded-2xl border border-line bg-elev p-6">
@@ -208,7 +208,7 @@ export default async function LandingPage() {
             <h3 className="font-serif text-xl">Built on give and get</h3>
             <p className="mt-3 text-ink-soft">
               Every match is two-way by design. You bring something the other person wants, and they
-              bring something you want. That&apos;s why the coffee is worth 15 minutes for both of
+              bring something you want. That&apos;s why the coffee is worth 30 minutes for both of
               you — not a cold pitch, a fair trade.
             </p>
           </div>

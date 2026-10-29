@@ -39,7 +39,7 @@ export function IntroCard({ intro }: { intro: IntroCardData }) {
       {intro.sharedSlots != null && (
         <div className="mt-2 text-xs text-ink-faint">
           {intro.sharedSlots > 0
-            ? `${intro.sharedSlots}${intro.sharedSlots >= 50 ? "+" : ""} shared free times`
+            ? `${intro.sharedSlots} shared free half-hours`
             : "No shared free times yet"}
         </div>
       )}

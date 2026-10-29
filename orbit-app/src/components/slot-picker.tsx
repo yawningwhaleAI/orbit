@@ -1,80 +1,45 @@
 "use client";
 
-import { useState } from "react";
-import { clsx } from "clsx";
 import { buttonClass } from "./ui";
 import { Clock } from "./icons";
+import { TimeChooser } from "./time-chooser";
 import { respond, requestMoreTimes } from "@/app/intro/[id]/actions";
 import type { Slot } from "@/lib/slots";
 
 export function SlotPicker({
   matchId,
-  slots,
+  slots30,
+  slots60,
   otherFirstName,
 }: {
   matchId: string;
-  slots: Slot[];
+  slots30: Slot[];
+  slots60: Slot[];
   otherFirstName: string;
 }) {
-  const [sel, setSel] = useState("");
-
   return (
     <div className="px-5 pb-5 pt-4">
       <div className="mb-3 flex items-center gap-2 text-sm text-ink-soft">
         <Clock className="h-4 w-4 text-accent-deep" />
-        Pick a 15-minute slot. These are times you&apos;re both free.
+        Pick a time for coffee with {otherFirstName}.
       </div>
 
-      {slots.length === 0 ? (
-        <div className="rounded-xl border border-line bg-sunken p-4 text-sm text-ink-soft">
-          You and {otherFirstName} have no free times in common right now.
+      <TimeChooser
+        action={respond}
+        hidden={{ matchId, decision: "accept" }}
+        submitLabel="Propose this time"
+        slots30={slots30}
+        slots60={slots60}
+        otherFirstName={otherFirstName}
+        emptyExtra={
           <form action={requestMoreTimes} className="mt-3">
             <input type="hidden" name="matchId" value={matchId} />
             <button type="submit" className={buttonClass("primary")}>
               Ask {otherFirstName} to open up a time
             </button>
           </form>
-        </div>
-      ) : (
-        <form action={respond}>
-          <input type="hidden" name="matchId" value={matchId} />
-          <input type="hidden" name="decision" value="accept" />
-          <input type="hidden" name="scheduledAt" value={sel} />
-
-          <button
-            type="button"
-            onClick={() => setSel(slots[0].iso)}
-            className="mb-3 w-full rounded-xl border border-accent bg-[color:var(--accent-tint)] px-3 py-2.5 text-sm font-medium text-accent-deep"
-          >
-            ⚡ Earliest shared time: {slots[0].label}
-          </button>
-
-          <div className="grid grid-cols-2 gap-2">
-            {slots.map((s) => {
-              const isSel = sel === s.iso;
-              return (
-                <button
-                  key={s.iso}
-                  type="button"
-                  onClick={() => setSel(s.iso)}
-                  className={clsx(
-                    "rounded-xl border px-3 py-2.5 text-sm transition",
-                    isSel
-                      ? "border-accent bg-[color:var(--accent-tint)] text-accent-deep"
-                      : "border-line-strong text-ink hover:border-accent"
-                  )}
-                >
-                  {s.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <button type="submit" disabled={!sel} className={clsx(buttonClass("primary"), "mt-4 w-full")}>
-            {sel ? "Yes, book this time" : "Select a time to book"}
-          </button>
-        </form>
-      )}
+        }
+      />
 
       <form action={respond} className="mt-2 text-center">
         <input type="hidden" name="matchId" value={matchId} />

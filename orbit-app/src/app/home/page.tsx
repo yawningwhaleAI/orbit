@@ -6,7 +6,7 @@ import { isoWeekKey } from "@/lib/week";
 import { AppNav } from "@/components/app-nav";
 import { Eyebrow } from "@/components/ui";
 import { IntroCard } from "@/components/intro-card";
-import { availableSlots } from "@/lib/meetings";
+import { sharedSlotCount } from "@/lib/meetings";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ export default async function HomePage() {
 
   const sharedCounts = await Promise.all(
     intros.map((i) =>
-      i.status === "proposed" ? availableSlots([user.id, i.otherId], i.id, 50).then((s) => s.length) : null
+      i.status === "proposed" ? sharedSlotCount(user.id, i.otherId, i.id) : null
     )
   );
 

@@ -30,12 +30,12 @@ export const metadata: Metadata = {
     template: "%s · Orbit",
   },
   description:
-    "The professional network for the people inside your building. Every week Orbit finds three people worth meeting and books a 15-minute coffee downstairs.",
+    "The professional network for the people inside your building. Every week Orbit finds three people worth meeting and books a 30-minute coffee downstairs.",
   applicationName: "Orbit",
   openGraph: {
     title: "Orbit — the professional network inside your building",
     description:
-      "Every week Orbit finds three people worth meeting in your building and books a 15-minute coffee. Not a feed.",
+      "Every week Orbit finds three people worth meeting in your building and books a 30-minute coffee. Not a feed.",
     url: SITE,
     siteName: "Orbit",
     type: "website",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Orbit — the professional network inside your building",
     description:
-      "Every week Orbit finds three people worth meeting in your building and books a 15-minute coffee.",
+      "Every week Orbit finds three people worth meeting in your building and books a 30-minute coffee.",
   },
   icons: { icon: "/icon.svg" },
   ...(GOOGLE_VERIFICATION ? { verification: { google: GOOGLE_VERIFICATION } } : {}),

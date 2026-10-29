@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { availableSlots } from "@/lib/meetings";
+import { offerSlots } from "@/lib/meetings";
 import { googleCalendarUrl } from "@/lib/slots";
 import { AppNav } from "@/components/app-nav";
 import { Avatar } from "@/components/ui";
@@ -52,13 +52,17 @@ export default async function MeetingPage({
     minute: "2-digit",
   });
 
-  const slots = await availableSlots([match.ownerId, match.otherId], match.id);
+  const [slots30, slots60] = await Promise.all(
+    [30, 60].map((durationMin) =>
+      offerSlots({ chooserId: user.id, otherId: other.id, excludeMatchId: match.id, durationMin })
+    )
+  );
   const calendarUrl =
     meeting.status === "confirmed"
       ? googleCalendarUrl({
           title: `Coffee with ${other.name} · Orbit`,
           start: meeting.scheduledAt,
-          minutes: 15,
+          minutes: meeting.durationMin,
           details: match.reason,
           location: meeting.venue,
         })
@@ -120,7 +124,7 @@ export default async function MeetingPage({
 
           <div className="mx-5 mt-4 space-y-2 text-sm">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-accent-deep" /> {whenLabel}
+              <Clock className="h-4 w-4 text-accent-deep" /> {whenLabel} · {meeting.durationMin === 60 ? "1 hour" : "30 min"}
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-accent-deep" /> {meeting.venue}
@@ -142,7 +146,9 @@ export default async function MeetingPage({
                 meetingId={meeting.id}
                 role={role}
                 status={meeting.status}
-                slots={slots}
+                slots30={slots30}
+                slots60={slots60}
+                otherFirstName={other.name.split(" ")[0]}
                 calendarUrl={calendarUrl}
               />
             )}

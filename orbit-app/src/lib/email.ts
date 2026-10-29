@@ -302,7 +302,7 @@ export function moreTimesRequestEmail(opts: {
   const html = WRAP(`
     <h1 style="font-size:22px;margin:0 0 6px;color:#1c1917;">A coffee is waiting on your calendar</h1>
     <p style="font-size:15px;color:#44403c;margin:0 0 18px;">
-      Hi ${opts.recipientFirstName}, <strong>${opts.requesterName}</strong> would love a 15-minute coffee
+      Hi ${opts.recipientFirstName}, <strong>${opts.requesterName}</strong> would love a 30-minute coffee
       with you but you have no free times in common. Add a few slots you're free and they can book instantly.
     </p>
     <a href="${opts.availabilityUrl}" style="display:inline-block;margin-top:8px;background:#b45a1f;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 20px;border-radius:10px;">

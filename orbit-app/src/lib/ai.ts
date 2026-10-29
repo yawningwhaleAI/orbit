@@ -48,7 +48,7 @@ export function whyYouTwoTemplate(input: WhyInput): string {
     return `You're looking for ${theyGive.toLowerCase()}, and that's exactly what ${other} offers. They're ${where} and happy to trade notes.`;
   }
   if (youGive) {
-    return `${other} is after ${youGive.toLowerCase()}, which is right in your wheelhouse. Worth 15 minutes, ${where}.`;
+    return `${other} is after ${youGive.toLowerCase()}, which is right in your wheelhouse. Worth 30 minutes, ${where}.`;
   }
   const role = input.otherRole ? `${input.otherRole}` : "someone worth knowing";
   return `${other} is a ${role} ${where}. Your interests line up well. Worth a quick coffee.`;
@@ -62,7 +62,7 @@ async function whyYouTwoLLM(input: WhyInput): Promise<string | null> {
 
 function buildPrompt(i: WhyInput): string {
   return [
-    "You write the single-sentence reason two colleagues in the same building should have a 15-minute coffee.",
+    "You write the single-sentence reason two colleagues in the same building should have a 30-minute coffee.",
     "Voice: warm, concrete, confident, no corporate filler, no em dashes. One sentence, under 30 words.",
     "Use the other person's first name. Make the specific exchange obvious.",
     "",

@@ -55,7 +55,7 @@ export function FeedbackForm({
 
       {showed === "yes" && (
         <div>
-          <div className="mb-2 text-sm font-medium">Was it worth 15 minutes?</div>
+          <div className="mb-2 text-sm font-medium">Was it worth 30 minutes?</div>
           <div className="flex gap-2">
             <label className={pill(worth === "yes")}>
               <input

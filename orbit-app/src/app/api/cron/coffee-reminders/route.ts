@@ -43,7 +43,7 @@ async function handle(req: NextRequest) {
 
   let sent = 0;
   for (const m of due) {
-    const label = whenLabel(m.scheduledAt);
+    const label = `${whenLabel(m.scheduledAt)} (${m.durationMin === 60 ? "1 hour" : "30 min"})`;
     for (const [me, them] of [
       [m.match.owner, m.match.other],
       [m.match.other, m.match.owner],
@@ -52,7 +52,7 @@ async function handle(req: NextRequest) {
       const calendarUrl = googleCalendarUrl({
         title: `Coffee with ${them.name} · Orbit`,
         start: m.scheduledAt,
-        minutes: 15,
+        minutes: m.durationMin,
         details: m.match.reason,
         location: m.venue,
       });
@@ -87,7 +87,7 @@ async function handle(req: NextRequest) {
       const mail = proposalNudgeEmail({
         recipientFirstName: invitee.name.split(" ")[0],
         proposerName: proposer.name,
-        whenLabel: whenLabel(m.scheduledAt),
+        whenLabel: `${whenLabel(m.scheduledAt)} (${m.durationMin === 60 ? "1 hour" : "30 min"})`,
         meetingUrl: `${appUrl()}/meeting/${m.id}`,
       });
       const r = await sendEmail({ to: invitee.email, subject: mail.subject, html: mail.html, text: mail.text });

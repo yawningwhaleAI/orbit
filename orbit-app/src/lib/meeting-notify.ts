@@ -30,6 +30,7 @@ export async function notifyMeeting(
   args: {
     meetingId: string;
     scheduledAt: Date;
+    durationMin?: number;
     venue: string;
     reason: string;
     owner: Party;
@@ -39,9 +40,10 @@ export async function notifyMeeting(
 ): Promise<void> {
   try {
     const { owner, other, actorId, scheduledAt, venue, reason, meetingId } = args;
+    const durationMin = args.durationMin ?? 30;
     const actor = actorId === owner.id ? owner : other;
     const counterpart = actorId === owner.id ? other : owner;
-    const label = whenLabel(scheduledAt);
+    const label = `${whenLabel(scheduledAt)} (${durationMin === 60 ? "1 hour" : "30 min"})`;
     const meetingUrl = `${appUrl()}/meeting/${meetingId}`;
     const sends: Promise<unknown>[] = [];
 
@@ -66,7 +68,7 @@ export async function notifyMeeting(
         const calendarUrl = googleCalendarUrl({
           title: `Coffee with ${them.name} · Orbit`,
           start: scheduledAt,
-          minutes: 15,
+          minutes: durationMin,
           details: reason,
           location: venue,
         });

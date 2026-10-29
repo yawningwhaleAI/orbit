@@ -3,7 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { lexicalGiveWant } from "@/lib/similarity";
-import { availableSlots as computeAvailableSlots } from "@/lib/meetings";
+import { offerSlots } from "@/lib/meetings";
 import { AppNav } from "@/components/app-nav";
 import { Avatar } from "@/components/ui";
 import { ArrowRight, Check, Clock, MapPin, X } from "@/components/icons";
@@ -55,7 +55,11 @@ export default async function IntroPage({
   });
 
   // Proposed time slots — only times where BOTH people are free.
-  const availableSlots = await computeAvailableSlots([user.id, match.otherId], match.id);
+  const [slots30, slots60] = await Promise.all(
+    [30, 60].map((durationMin) =>
+      offerSlots({ chooserId: user.id, otherId: match.otherId, excludeMatchId: match.id, durationMin })
+    )
+  );
 
   return (
     <>
@@ -159,7 +163,7 @@ export default async function IntroPage({
                   : `Waiting for ${match.other.name.split(" ")[0]} to confirm.`}
               </p>
               <div className="mx-auto mt-4 max-w-xs space-y-2 text-left text-sm">
-                <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-accent-deep" /> {meetingWhen}</div>
+                <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-accent-deep" /> {meetingWhen}{match.meeting.durationMin === 60 ? " · 1 hour" : " · 30 min"}</div>
                 <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-accent-deep" /> {match.meeting.venue}</div>
               </div>
               <Link href={`/meeting/${match.meeting.id}`} className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent-deep hover:underline">
@@ -177,7 +181,8 @@ export default async function IntroPage({
           ) : (
             <SlotPicker
               matchId={match.id}
-              slots={availableSlots}
+              slots30={slots30}
+              slots60={slots60}
               otherFirstName={match.other.name.split(" ")[0]}
             />
           )}
