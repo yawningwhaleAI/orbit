@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -18,6 +19,9 @@ const inter = Inter({
 });
 
 const SITE = "https://withinorbit.space";
+// Set in Vercel env vars; each integration is skipped when its var is empty.
+const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID;
+const GOOGLE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
@@ -43,6 +47,7 @@ export const metadata: Metadata = {
       "Every week Orbit finds three people worth meeting in your building and books a 15-minute coffee.",
   },
   icons: { icon: "/icon.svg" },
+  ...(GOOGLE_VERIFICATION ? { verification: { google: GOOGLE_VERIFICATION } } : {}),
 };
 
 export default function RootLayout({
@@ -52,7 +57,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        {CLARITY_ID && (
+          <Script id="ms-clarity" strategy="afterInteractive">
+            {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script",${JSON.stringify(CLARITY_ID)});`}
+          </Script>
+        )}
+      </body>
     </html>
   );
 }

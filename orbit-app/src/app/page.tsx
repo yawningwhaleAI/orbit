@@ -9,6 +9,11 @@ import { ArrowRight, Spark, Users, Calendar, Clock } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
+// Dodo Payments checkout link for the operator plan; falls back to email.
+const CHECKOUT_URL =
+  process.env.NEXT_PUBLIC_DODO_CHECKOUT_URL ||
+  "mailto:hello@withinorbit.space?subject=Orbit%20for%20our%20building";
+
 export default async function LandingPage() {
   const user = await getCurrentUser();
 
@@ -216,6 +221,41 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* Pricing */}
+        <section id="pricing" className="pb-16">
+          <h2 className="mb-8 font-serif text-[1.8rem]">Simple pricing.</h2>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="rounded-2xl border border-line bg-elev p-7">
+              <div className="text-sm font-semibold">Members</div>
+              <div className="mt-2 font-serif text-3xl">Free</div>
+              <p className="mt-3 text-sm text-ink-soft">
+                Everyone who works in an Orbit building gets three intros a week and coffee booking
+                at no cost.
+              </p>
+              <div className="mt-6">
+                <LinkButton href="/login?mode=signup" variant="ghost">
+                  Join your building
+                </LinkButton>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-line bg-elev p-7">
+              <div className="text-sm font-semibold">Building operators</div>
+              <div className="mt-2 font-serif text-3xl">
+                ₹15,000 <span className="text-base text-ink-soft">/ building / month</span>
+              </div>
+              <p className="mt-3 text-sm text-ink-soft">
+                A tenant-engagement amenity for your tower or coworking space: invite links and QR
+                flyers, weekly matching, and an activation dashboard.
+              </p>
+              <div className="mt-6">
+                <LinkButton href={CHECKOUT_URL} variant="primary">
+                  Get Orbit for your building <ArrowRight className="h-4 w-4" />
+                </LinkButton>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {!user && (
           <section className="mb-20 rounded-3xl border border-line bg-[linear-gradient(180deg,var(--accent-tint),transparent)] p-10 text-center">
             <h2 className="font-serif text-[2rem]">Your next collaborator is in the building.</h2>
@@ -237,8 +277,17 @@ export default async function LandingPage() {
           <Wordmark />
           <div className="flex items-center gap-4">
             <span>The professional network inside your building.</span>
+            <Link href="/#pricing" className="hover:text-ink">
+              Pricing
+            </Link>
             <Link href="/privacy" className="hover:text-ink">
               Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-ink">
+              Terms
+            </Link>
+            <Link href="/refunds" className="hover:text-ink">
+              Refunds
             </Link>
           </div>
         </div>
