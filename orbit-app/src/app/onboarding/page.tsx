@@ -8,6 +8,8 @@ import { OnboardingForm } from "@/components/onboarding-form";
 import { GIVE_SUGGESTIONS, WANT_SUGGESTIONS, SENIORITY } from "@/lib/tags";
 
 export const dynamic = "force-dynamic";
+// The form's server action (saveOnboarding) also generates intros; give it room.
+export const maxDuration = 60;
 
 export default async function OnboardingPage() {
   const user = await getCurrentUser();

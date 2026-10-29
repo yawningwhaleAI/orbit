@@ -63,7 +63,12 @@ export async function saveOnboarding(formData: FormData) {
   // Generate this week's intros so the member lands on a populated home.
   if (buildingId) {
     try {
-      await generateForBuilding(buildingId);
+      // Cap the wait so a slow AI provider can never trap the user on this page;
+      // missing intros are filled in by the weekly run.
+      await Promise.race([
+        generateForBuilding(buildingId),
+        new Promise((resolve) => setTimeout(resolve, 40000)),
+      ]);
     } catch (e) {
       console.warn("[onboarding] match generation failed:", e);
     }
