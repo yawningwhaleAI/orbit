@@ -1,6 +1,6 @@
 // Single LLM entry point used across the app (match reasons, resume parsing).
 //
-// Provider order: OpenRouter (if OPENROUTER_API_KEY) -> Anthropic (if
+// Provider order: Gemini -> OpenRouter -> Anthropic (if
 // ANTHROPIC_API_KEY) -> null (callers fall back to templates/manual input).
 // Plain fetch, no SDK, so every provider is optional.
 
@@ -20,7 +20,7 @@ export interface ChatOptions {
   maxTokens?: number;
   temperature?: number;
   json?: boolean; // ask the provider for a JSON object response
-  timeoutMs?: number; // per-request timeout (default 40s) so slow free models
+  timeoutMs?: number; // per-request timeout (default 20s) so slow free models
   // return a clean error instead of hanging past the serverless limit
 }
 
@@ -55,8 +55,21 @@ export async function chatDetailed(prompt: string, opts: ChatOptions = {}): Prom
   const maxTokens = opts.maxTokens ?? 300;
   const errors: string[] = [];
 
-  // OpenRouter first — its free models are currently the most dependable. Try
-  // the configured model, then a fallback (default: the Free Models Router,
+  // Gemini first: fastest option, and a quota error (429) fails instantly so we
+  // fall through to OpenRouter. Try the configured model, then "-latest" aliases.
+  if (env("GEMINI_API_KEY")) {
+    const gModels = [
+      env("GEMINI_MODEL") || "gemini-3.8-flash",
+      "gemini-flash-latest",
+    ].filter((m, i, a) => m && a.indexOf(m) === i);
+    for (const model of gModels) {
+      const r = await gemini(prompt, maxTokens, opts, model);
+      if (r.text) return { text: r.text };
+      if (r.error) errors.push(`Gemini[${model}]: ${r.error}`);
+    }
+  }
+
+  // OpenRouter next (free models, slower). Try the configured model, then a fallback (default: the Free Models Router,
   // which auto-routes to an available free model so a retired slug never
   // breaks us).
   if (env("OPENROUTER_API_KEY")) {
@@ -69,20 +82,6 @@ export async function chatDetailed(prompt: string, opts: ChatOptions = {}): Prom
       const r = await openRouter(prompt, maxTokens, opts, model);
       if (r.text) return { text: r.text };
       if (r.error) errors.push(`OpenRouter[${model}]: ${r.error}`);
-    }
-  }
-
-  // Google Gemini next. Its free tier is small/rate-limited, but it's a good
-  // backup when it has quota. Try the configured model, then "-latest" aliases.
-  if (env("GEMINI_API_KEY")) {
-    const gModels = [
-      env("GEMINI_MODEL") || "gemini-3.8-flash",
-      "gemini-flash-latest",
-    ].filter((m, i, a) => m && a.indexOf(m) === i);
-    for (const model of gModels) {
-      const r = await gemini(prompt, maxTokens, opts, model);
-      if (r.text) return { text: r.text };
-      if (r.error) errors.push(`Gemini[${model}]: ${r.error}`);
     }
   }
 
@@ -122,7 +121,7 @@ async function openRouter(
           { role: "user", content: prompt },
         ],
       }),
-    }, opts.timeoutMs ?? 40000);
+    }, opts.timeoutMs ?? 20000);
     if (!res.ok) {
       const body = (await res.text()).slice(0, 300);
       console.warn("[llm] OpenRouter error", res.status, body);
@@ -176,7 +175,7 @@ async function gemini(
             ...(opts.json ? { responseMimeType: "application/json" } : {}),
           },
         }),
-      }, opts.timeoutMs ?? 40000);
+      }, opts.timeoutMs ?? 20000);
       if (!res.ok) {
         const body = (await res.text()).slice(0, 300);
         console.warn("[llm] Gemini error", res.status, body);
@@ -220,7 +219,7 @@ async function anthropic(prompt: string, maxTokens: number, opts: ChatOptions): 
         ...(opts.system ? { system: opts.system } : {}),
         messages: [{ role: "user", content: prompt }],
       }),
-    }, opts.timeoutMs ?? 40000);
+    }, opts.timeoutMs ?? 20000);
     if (!res.ok) {
       const body = (await res.text()).slice(0, 300);
       console.warn("[llm] Anthropic error", res.status, body);
