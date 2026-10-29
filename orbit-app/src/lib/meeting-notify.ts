@@ -16,6 +16,7 @@ export type Party = { id: string; name: string; email: string; role?: string | n
 
 function whenLabel(d: Date): string {
   return d.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
     weekday: "long",
     day: "numeric",
     month: "short",

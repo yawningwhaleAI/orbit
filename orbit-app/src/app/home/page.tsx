@@ -6,6 +6,7 @@ import { isoWeekKey } from "@/lib/week";
 import { AppNav } from "@/components/app-nav";
 import { Eyebrow } from "@/components/ui";
 import { IntroCard } from "@/components/intro-card";
+import { availableSlots } from "@/lib/meetings";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,12 @@ export default async function HomePage() {
     orderBy: { score: "desc" },
   });
 
+  const sharedCounts = await Promise.all(
+    intros.map((i) =>
+      i.status === "proposed" ? availableSlots([user.id, i.otherId], i.id, 50).then((s) => s.length) : null
+    )
+  );
+
   const building = user.building?.name ?? "your building";
   const accepted = intros.filter((i) => i.status === "accepted" && i.meeting);
 
@@ -37,17 +44,27 @@ export default async function HomePage() {
           Curated for you in {building} this week. Tap one to see why, then accept the coffee.
         </p>
 
+        {!user.availabilitySet && (
+          <Link
+            href="/availability"
+            className="mb-5 block rounded-xl border border-accent bg-[color:var(--accent-tint)] px-4 py-3 text-sm text-accent-deep"
+          >
+            Set the times you&apos;re free for coffee so people can book you instantly →
+          </Link>
+        )}
+
         {intros.length === 0 ? (
           <div className="rounded-2xl border border-line bg-sunken p-8 text-center text-ink-soft">
-            No introductions yet this week. Check back soon.
+            You're in. Your introductions arrive as soon as more people join your building — share your building's invite link to speed it up.
           </div>
         ) : (
           <div className="space-y-3">
-            {intros.map((i) => (
+            {intros.map((i, idx) => (
               <IntroCard
                 key={i.id}
                 intro={{
                   id: i.id,
+                  sharedSlots: sharedCounts[idx],
                   matchPct: i.matchPct,
                   status: i.status,
                   reason: i.reason,
@@ -85,6 +102,7 @@ export default async function HomePage() {
                   </span>
                   <span className="text-ink-faint">
                     {i.meeting!.scheduledAt.toLocaleDateString("en-IN", {
+    timeZone: "Asia/Kolkata",
                       weekday: "short",
                       hour: "numeric",
                       minute: "2-digit",

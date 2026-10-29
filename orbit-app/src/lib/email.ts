@@ -291,3 +291,46 @@ Where: ${opts.venue}
 Add to calendar: ${opts.calendarUrl}`;
   return { subject, html, text };
 }
+
+// Sent when a member wants to meet but the two have no shared free time.
+export function moreTimesRequestEmail(opts: {
+  recipientFirstName: string;
+  requesterName: string;
+  availabilityUrl: string;
+}): { subject: string; html: string; text: string } {
+  const subject = `${opts.requesterName} would like to meet — can you open up a time?`;
+  const html = WRAP(`
+    <h1 style="font-size:22px;margin:0 0 6px;color:#1c1917;">A coffee is waiting on your calendar</h1>
+    <p style="font-size:15px;color:#44403c;margin:0 0 18px;">
+      Hi ${opts.recipientFirstName}, <strong>${opts.requesterName}</strong> would love a 15-minute coffee
+      with you but you have no free times in common. Add a few slots you're free and they can book instantly.
+    </p>
+    <a href="${opts.availabilityUrl}" style="display:inline-block;margin-top:8px;background:#b45a1f;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 20px;border-radius:10px;">
+      Choose my free times
+    </a>
+  `);
+  const text = `${opts.requesterName} would like a coffee but you share no free times. Add yours: ${opts.availabilityUrl}`;
+  return { subject, html, text };
+}
+
+// Chase for a coffee proposal the invitee hasn't answered yet.
+export function proposalNudgeEmail(opts: {
+  recipientFirstName: string;
+  proposerName: string;
+  whenLabel: string;
+  meetingUrl: string;
+}): { subject: string; html: string; text: string } {
+  const subject = `Still want that coffee with ${opts.proposerName}?`;
+  const html = WRAP(`
+    <h1 style="font-size:22px;margin:0 0 6px;color:#1c1917;">Quick reply needed ☕</h1>
+    <p style="font-size:15px;color:#44403c;margin:0 0 18px;">
+      Hi ${opts.recipientFirstName}, <strong>${opts.proposerName}</strong> proposed <strong>${opts.whenLabel}</strong>
+      and is waiting to hear back. Confirm, or suggest another time — it takes one tap.
+    </p>
+    <a href="${opts.meetingUrl}" style="display:inline-block;margin-top:8px;background:#b45a1f;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 20px;border-radius:10px;">
+      Reply now
+    </a>
+  `);
+  const text = `${opts.proposerName} proposed ${opts.whenLabel} and is waiting. Reply: ${opts.meetingUrl}`;
+  return { subject, html, text };
+}

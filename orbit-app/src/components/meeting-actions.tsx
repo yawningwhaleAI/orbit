@@ -37,7 +37,7 @@ export function MeetingActions({
       <input type="hidden" name="scheduledAt" value={sel} />
       {slots.length === 0 ? (
         <p className="rounded-xl border border-line bg-sunken p-3 text-sm text-ink-soft">
-          No other shared free times right now.
+          No other shared free times right now — ask them to open up more on their Free times page.
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-2">
@@ -102,7 +102,7 @@ export function MeetingActions({
             onClick={() => setRescheduling(true)}
             className={buttonClass("ghost")}
           >
-            <Clock className="h-4 w-4" /> Reschedule
+            <Clock className="h-4 w-4" /> {role === "invitee" && status === "proposed" ? "Suggest another time" : "Reschedule"}
           </button>
         )}
 

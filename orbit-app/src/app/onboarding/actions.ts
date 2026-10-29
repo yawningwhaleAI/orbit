@@ -74,5 +74,5 @@ export async function saveOnboarding(formData: FormData) {
     }
   }
 
-  redirect("/home");
+  redirect(user.onboarded ? "/home" : "/availability?welcome=1");
 }

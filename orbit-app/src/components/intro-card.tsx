@@ -7,6 +7,7 @@ export type IntroCardData = {
   matchPct: number;
   status: string;
   reason: string;
+  sharedSlots?: number | null;
   other: {
     name: string;
     role: string | null;
@@ -35,6 +36,13 @@ export function IntroCard({ intro }: { intro: IntroCardData }) {
         <StatusPill status={intro.status} pct={intro.matchPct} />
       </div>
       <p className="mt-3 font-serif text-[0.95rem] leading-snug text-ink-soft">{intro.reason}</p>
+      {intro.sharedSlots != null && (
+        <div className="mt-2 text-xs text-ink-faint">
+          {intro.sharedSlots > 0
+            ? `${intro.sharedSlots}${intro.sharedSlots >= 50 ? "+" : ""} shared free times`
+            : "No shared free times yet"}
+        </div>
+      )}
       <div className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-accent-deep">
         View intro <ArrowRight className="h-4 w-4" />
       </div>

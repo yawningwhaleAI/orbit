@@ -75,6 +75,10 @@ model User {
   building      Building? @relation(fields: [buildingId], references: [id])
   buildingId    String?
 
+  // false = never set their free times -> treated as free in every slot.
+  availabilitySet Boolean @default(false)
+  availability  Availability[]
+
   tags          ProfileTag[]
   ownerMatches  Match[]   @relation("owner")
   otherMatches  Match[]   @relation("other")
@@ -95,6 +99,18 @@ model LoginToken {
   createdAt DateTime  @default(now())
 
   @@index([email])
+}
+
+// Recurring weekly free slots (IST). weekday 1-5 (Mon-Fri), slot "HH:MM".
+model Availability {
+  id      String @id @default(cuid())
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  weekday Int
+  slot    String
+
+  @@unique([userId, weekday, slot])
+  @@index([userId])
 }
 
 model ProfileTag {
@@ -126,6 +142,7 @@ model Match {
   meeting     Meeting?
   createdAt   DateTime  @default(now())
   respondedAt DateTime?
+  nudgedAt    DateTime? // last "please open up more free times" email
 
   @@unique([week, ownerId, otherId])
   @@index([ownerId, week])
@@ -144,6 +161,7 @@ model Meeting {
   proposedById String? // who proposed the current time (for two-sided confirm)
   respondedAt    DateTime? // when the other side accepted/declined
   reminderSentAt DateTime? // when the day-before reminder was sent (de-dupe)
+  pendingNudgeAt DateTime? // when we chased the invitee about an unanswered proposal
   createdAt      DateTime  @default(now())
   feedback       MeetingFeedback[]
 }

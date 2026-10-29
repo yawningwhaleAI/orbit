@@ -4,7 +4,7 @@ import { useState } from "react";
 import { clsx } from "clsx";
 import { buttonClass } from "./ui";
 import { Clock } from "./icons";
-import { respond } from "@/app/intro/[id]/actions";
+import { respond, requestMoreTimes } from "@/app/intro/[id]/actions";
 import type { Slot } from "@/lib/slots";
 
 export function SlotPicker({
@@ -27,14 +27,27 @@ export function SlotPicker({
 
       {slots.length === 0 ? (
         <div className="rounded-xl border border-line bg-sunken p-4 text-sm text-ink-soft">
-          No shared free times in the next couple of weeks — {otherFirstName} is fully booked. Check
-          back soon.
+          You and {otherFirstName} have no free times in common right now.
+          <form action={requestMoreTimes} className="mt-3">
+            <input type="hidden" name="matchId" value={matchId} />
+            <button type="submit" className={buttonClass("primary")}>
+              Ask {otherFirstName} to open up a time
+            </button>
+          </form>
         </div>
       ) : (
         <form action={respond}>
           <input type="hidden" name="matchId" value={matchId} />
           <input type="hidden" name="decision" value="accept" />
           <input type="hidden" name="scheduledAt" value={sel} />
+
+          <button
+            type="button"
+            onClick={() => setSel(slots[0].iso)}
+            className="mb-3 w-full rounded-xl border border-accent bg-[color:var(--accent-tint)] px-3 py-2.5 text-sm font-medium text-accent-deep"
+          >
+            ⚡ Earliest shared time: {slots[0].label}
+          </button>
 
           <div className="grid grid-cols-2 gap-2">
             {slots.map((s) => {

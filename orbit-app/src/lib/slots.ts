@@ -7,32 +7,45 @@ export interface Slot {
   label: string; // e.g. "Thu 17 Oct · 3:00 PM"
 }
 
-const TIMES: Array<[number, number]> = [
-  [10, 30],
-  [12, 0],
-  [15, 0],
-  [16, 30],
+// All slot logic is in India Standard Time (UTC+5:30, no DST) so it renders the
+// same on a UTC server and in every member's browser.
+export const IST = "Asia/Kolkata";
+const IST_OFFSET_MS = 330 * 60000;
+export const SLOT_TIMES = ["10:30", "12:00", "15:00", "16:30"] as const;
+export const WEEKDAYS = [
+  { n: 1, label: "Mon" },
+  { n: 2, label: "Tue" },
+  { n: 3, label: "Wed" },
+  { n: 4, label: "Thu" },
+  { n: 5, label: "Fri" },
 ];
 
+export function slotKey(weekday: number, time: string): string {
+  return `${weekday}-${time}`;
+}
+
+// Weekday (0=Sun) and "HH:MM" of an instant, in IST.
+export function istParts(d: Date): { weekday: number; time: string } {
+  const t = new Date(d.getTime() + IST_OFFSET_MS);
+  const hh = String(t.getUTCHours()).padStart(2, "0");
+  const mm = String(t.getUTCMinutes()).padStart(2, "0");
+  return { weekday: t.getUTCDay(), time: `${hh}:${mm}` };
+}
+
+// Upcoming weekday slots, starting tomorrow (IST).
 export function generateSlots(from = new Date(), count = 8): Slot[] {
   const slots: Slot[] = [];
-  const day = new Date(from);
-  day.setHours(0, 0, 0, 0);
-  day.setDate(day.getDate() + 1); // start tomorrow
-
-  while (slots.length < count) {
-    const dow = day.getDay();
-    if (dow !== 0 && dow !== 6) {
-      for (const [h, m] of TIMES) {
-        if (slots.length >= count) break;
-        const d = new Date(day);
-        d.setHours(h, m, 0, 0);
-        if (d.getTime() > from.getTime()) {
-          slots.push({ iso: d.toISOString(), label: formatSlot(d) });
-        }
-      }
+  const today = new Date(from.getTime() + IST_OFFSET_MS);
+  for (let i = 1; slots.length < count && i < 60; i++) {
+    const dayStart = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + i);
+    const weekday = new Date(dayStart).getUTCDay();
+    if (weekday === 0 || weekday === 6) continue;
+    for (const t of SLOT_TIMES) {
+      if (slots.length >= count) break;
+      const [h, m] = t.split(":").map(Number);
+      const d = new Date(dayStart + (h * 60 + m) * 60000 - IST_OFFSET_MS);
+      if (d.getTime() > from.getTime()) slots.push({ iso: d.toISOString(), label: formatSlot(d) });
     }
-    day.setDate(day.getDate() + 1);
   }
   return slots;
 }
@@ -42,11 +55,13 @@ export function formatSlot(d: Date): string {
     weekday: "short",
     day: "numeric",
     month: "short",
+    timeZone: IST,
   });
   const time = d.toLocaleTimeString("en-IN", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
+    timeZone: IST,
   });
   return `${date} · ${time}`;
 }

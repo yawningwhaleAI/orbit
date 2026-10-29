@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { hasClash } from "@/lib/meetings";
+import { hasClash, isWithinFreeTimes } from "@/lib/meetings";
 import { notifyMeeting, type Party } from "@/lib/meeting-notify";
 
 function parseSlot(v: FormDataEntryValue | null): Date | null {
@@ -94,7 +94,10 @@ export async function rescheduleMeeting(formData: FormData) {
   }
   const when = parseSlot(formData.get("scheduledAt"));
   if (!when) redirect(`/meeting/${id}?error=bad_time`);
-  if (await hasClash([match.ownerId, match.otherId], when, match.id)) {
+  if (
+    !(await isWithinFreeTimes([match.ownerId, match.otherId], when)) ||
+    (await hasClash([match.ownerId, match.otherId], when, match.id))
+  ) {
     redirect(`/meeting/${id}?error=slot_taken`);
   }
   // New time needs the other side to confirm again.

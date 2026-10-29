@@ -24,7 +24,7 @@ export default async function IntroPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { error?: string };
+  searchParams: { error?: string; asked?: string };
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -46,6 +46,7 @@ export default async function IntroPage({
 
   const sub = [match.other.role, match.other.company].filter(Boolean).join(" · ");
   const meetingWhen = match.meeting?.scheduledAt.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
     weekday: "long",
     day: "numeric",
     month: "short",
@@ -66,7 +67,13 @@ export default async function IntroPage({
 
         {searchParams?.error === "slot_taken" && (
           <div className="mb-4 rounded-xl border border-accent bg-[color:var(--accent-tint)] px-4 py-3 text-sm text-accent-deep">
-            That time was just booked. Please pick another slot below.
+            That time is no longer available for both of you. Please pick another slot below.
+          </div>
+        )}
+
+        {searchParams?.asked && (
+          <div className="mb-4 rounded-xl border border-accent bg-[color:var(--accent-tint)] px-4 py-3 text-sm text-accent-deep">
+            Sent. We emailed {match.other.name.split(" ")[0]} asking them to open up a time.
           </div>
         )}
 

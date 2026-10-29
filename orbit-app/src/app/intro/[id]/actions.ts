@@ -5,7 +5,9 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { nextThursday3pm } from "@/lib/week";
-import { hasClash } from "@/lib/meetings";
+import { hasClash, isWithinFreeTimes } from "@/lib/meetings";
+import { appUrl } from "@/lib/magic";
+import { sendEmail, isSendableAddress, moreTimesRequestEmail } from "@/lib/email";
 import { notifyMeeting } from "@/lib/meeting-notify";
 
 function parseSlot(v: FormDataEntryValue | null): Date | null {
@@ -34,7 +36,11 @@ export async function respond(formData: FormData) {
   if (!match || match.ownerId !== user.id) redirect("/home");
 
   if (decision === "accept") {
-    const when = parseSlot(formData.get("scheduledAt")) ?? nextThursday3pm();
+    const picked = parseSlot(formData.get("scheduledAt"));
+    const when = picked ?? nextThursday3pm();
+    if (picked && !(await isWithinFreeTimes([user.id, match.otherId], picked))) {
+      redirect(`/intro/${match.id}?error=slot_taken`);
+    }
     const venue = `${match.building.cafeName}, ${match.building.name}`;
 
     if (await hasClash([user.id, match.otherId], when, match.id)) {
@@ -74,4 +80,27 @@ export async function respond(formData: FormData) {
   revalidatePath(`/intro/${match.id}`);
   revalidatePath("/home");
   redirect(`/intro/${match.id}`);
+}
+
+// No shared free time: nudge the other person to open up slots (max once / 24h).
+export async function requestMoreTimes(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  const matchId = String(formData.get("matchId") || "");
+  const match = await db.match.findUnique({ where: { id: matchId }, include: { other: true } });
+  if (!match || match.ownerId !== user.id) redirect("/home");
+
+  const recent = match.nudgedAt && Date.now() - match.nudgedAt.getTime() < 24 * 3600 * 1000;
+  if (!recent) {
+    await db.match.update({ where: { id: match.id }, data: { nudgedAt: new Date() } });
+    if (isSendableAddress(match.other.email)) {
+      const m = moreTimesRequestEmail({
+        recipientFirstName: match.other.name.split(" ")[0],
+        requesterName: user.name,
+        availabilityUrl: `${appUrl()}/availability`,
+      });
+      await sendEmail({ to: match.other.email, subject: m.subject, html: m.html, text: m.text });
+    }
+  }
+  redirect(`/intro/${match.id}?asked=1`);
 }

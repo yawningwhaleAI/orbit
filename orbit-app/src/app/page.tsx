@@ -127,6 +127,7 @@ export default async function LandingPage() {
                         <div className="mt-1 hidden items-center justify-end gap-1.5 text-ink-soft sm:flex">
                           <Clock className="h-4 w-4 text-accent-deep" />
                           {m.scheduledAt.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
                             weekday: "short",
                             day: "numeric",
                             month: "short",

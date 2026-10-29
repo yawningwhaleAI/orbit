@@ -44,6 +44,7 @@ export default async function MeetingPage({
     !myFeedback;
 
   const whenLabel = meeting.scheduledAt.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
     weekday: "long",
     day: "numeric",
     month: "short",

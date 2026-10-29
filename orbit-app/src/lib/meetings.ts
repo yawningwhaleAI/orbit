@@ -2,7 +2,8 @@
 // booking actions — so availability and conflict rules live in one place.
 
 import { db } from "./db";
-import { generateSlots, type Slot } from "./slots";
+import { generateSlots, istParts, slotKey, type Slot } from "./slots";
+import { loadFreeSets } from "./availability";
 
 // Statuses that occupy a time slot (block double-booking / availability).
 // "booked" is the legacy value from before two-sided confirmation — kept so
@@ -27,18 +28,23 @@ async function busyTimes(userIds: string[], excludeMatchId?: string): Promise<Da
   return meetings.map((m) => m.scheduledAt);
 }
 
-// Upcoming slots where BOTH users are free.
+// Upcoming slots where BOTH users are free: inside each person's declared weekly
+// free times (everyone is free everywhere until they set them) and not already
+// occupied by another coffee.
 export async function availableSlots(
   userIds: string[],
   excludeMatchId?: string,
   count = 8
 ): Promise<Slot[]> {
-  const busy = await busyTimes(userIds, excludeMatchId);
-  return generateSlots(new Date(), 40)
-    .filter(
-      (s) =>
-        !busy.some((b) => Math.abs(new Date(s.iso).getTime() - b.getTime()) < CLASH_WINDOW_MS)
-    )
+  const [busy, free] = await Promise.all([busyTimes(userIds, excludeMatchId), loadFreeSets(userIds)]);
+  return generateSlots(new Date(), 200)
+    .filter((s) => {
+      const d = new Date(s.iso);
+      const { weekday, time } = istParts(d);
+      const key = slotKey(weekday, time);
+      if (!userIds.every((id) => free.get(id) === null || free.get(id)?.has(key))) return false;
+      return !busy.some((b) => Math.abs(d.getTime() - b.getTime()) < CLASH_WINDOW_MS);
+    })
     .slice(0, count);
 }
 
@@ -62,4 +68,12 @@ export async function hasClash(
     },
   });
   return !!clash;
+}
+
+// True if `when` falls inside every listed user's declared free times.
+export async function isWithinFreeTimes(userIds: string[], when: Date): Promise<boolean> {
+  const free = await loadFreeSets(userIds);
+  const { weekday, time } = istParts(when);
+  const key = slotKey(weekday, time);
+  return userIds.every((id) => free.get(id) === null || free.get(id)?.has(key));
 }
