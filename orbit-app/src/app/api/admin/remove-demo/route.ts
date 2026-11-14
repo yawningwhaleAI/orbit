@@ -12,7 +12,8 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
-const KEEP_NAMES = ["Aryan Singh", "Pragya Rathi"];
+const KEEP_NAMES = ["aryan singh", "pragya rathi"];
+const norm = (n: string) => n.trim().replace(/\s+/g, " ").toLowerCase();
 
 export async function POST(req: NextRequest) {
   const secret = process.env.CRON_SECRET?.trim();
@@ -32,10 +33,10 @@ export async function POST(req: NextRequest) {
         where: { NOT: { email: { endsWith: "@example.com" } } },
         select: { name: true },
       })
-    ).map((u) => u.name)
+    ).map((u) => norm(u.name))
   );
   // Remove a placeholder unless it's a real person who has no real-email copy yet.
-  const remove = placeholders.filter((u) => !KEEP_NAMES.includes(u.name) || realNames.has(u.name));
+  const remove = placeholders.filter((u) => !KEEP_NAMES.includes(norm(u.name)) || realNames.has(norm(u.name)));
   const kept = placeholders.filter((u) => !remove.includes(u));
 
   if (!confirm) {
