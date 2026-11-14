@@ -188,9 +188,10 @@ export async function generateForBuilding(
 
   for (const owner of members) {
     if (opts.onlyOwnerId && owner.id !== opts.onlyOwnerId) continue;
-    // Skip owners who already have intros this week (idempotent unless regen).
+    // Top up to the weekly quota (idempotent: a full week is left alone).
     const existing = await db.match.count({ where: { ownerId: owner.id, week } });
-    if (existing > 0) continue;
+    const need = (owner.introsPerWeek || 3) - existing;
+    if (need <= 0) continue;
 
     // Pairs already introduced historically — avoid repeating people.
     const prior = await db.match.findMany({
@@ -204,7 +205,7 @@ export async function generateForBuilding(
       .map((other) => ({ other, ...scorePair(owner, other) }))
       .filter((s) => s.score > 0.08)
       .sort((a, b) => b.score - a.score)
-      .slice(0, owner.introsPerWeek || 3);
+      .slice(0, need);
 
     for (const s of scored) {
       const other = byId.get(s.other.id)!;
