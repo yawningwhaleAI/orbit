@@ -72,16 +72,45 @@ export const ADDITIONAL_MEMBERS: Seed[] = [];
 export async function addMembers(
   list: Seed[] = ADDITIONAL_MEMBERS,
   buildingName = "DLF Tower"
-): Promise<{ added: string[]; existing: string[]; intros: number }> {
+): Promise<{ added: string[]; updated: string[]; existing: string[]; intros: number }> {
   const building = await db.building.findFirst({ where: { name: buildingName } });
   if (!building) throw new Error(`Building "${buildingName}" not found`);
 
   const added: string[] = [];
+  const updated: string[] = [];
   const existing: string[] = [];
   for (const m of list) {
     const email = m.email.trim().toLowerCase();
     if (await db.user.findUnique({ where: { email } })) {
       existing.push(email);
+      continue;
+    }
+    // A demo placeholder with the same name (e.g. navya.juneja@example.com):
+    // switch it to the real email and refresh the profile, keeping its intros.
+    const placeholder = await db.user.findFirst({
+      where: { name: m.name, email: { endsWith: "@example.com" }, isOperator: false },
+    });
+    if (placeholder) {
+      await db.profileTag.deleteMany({ where: { userId: placeholder.id } });
+      await db.user.update({
+        where: { id: placeholder.id },
+        data: {
+          email,
+          role: m.role,
+          company: m.company,
+          floor: m.floor ?? placeholder.floor,
+          seniority: m.seniority,
+          education: m.education,
+          bio: m.bio,
+          tags: {
+            create: [
+              ...m.gives.map((label) => ({ kind: "give", label })),
+              ...m.wants.map((label) => ({ kind: "want", label })),
+            ],
+          },
+        },
+      });
+      updated.push(email);
       continue;
     }
     await db.user.create({
@@ -109,7 +138,7 @@ export async function addMembers(
     added.push(email);
   }
   const r = await generateForBuilding(building.id);
-  return { added, existing, intros: r.matchesCreated };
+  return { added, updated, existing, intros: r.matchesCreated };
 }
 
 export interface SeedResult {
