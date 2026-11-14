@@ -22,12 +22,12 @@ export default async function HomePage({ searchParams }: { searchParams?: { save
   const loadIntros = () =>
     db.match.findMany({
       where: { ownerId: user.id, week },
-      include: { other: true, meeting: true },
+      include: { other: { include: { building: { select: { name: true } } } }, meeting: true },
       orderBy: { score: "desc" },
     });
   let intros = await loadIntros();
-  // No intros yet this week (e.g. joined mid-week): make this member's now.
-  if (intros.length === 0 && user.buildingId) {
+  // Fewer than this week's quota (joined mid-week, new members since): top up now.
+  if (intros.length < (user.introsPerWeek || 3) && user.buildingId) {
     try {
       const r = await generateForBuilding(user.buildingId, { week, onlyOwnerId: user.id, fastReasons: true });
       if (r.matchesCreated > 0) intros = await loadIntros();
@@ -101,6 +101,7 @@ export default async function HomePage({ searchParams }: { searchParams?: { save
                     role: i.other.role,
                     company: i.other.company,
                     floor: i.other.floor,
+                    building: i.other.buildingId !== user.buildingId ? i.other.building?.name ?? null : null,
                   },
                 }}
               />

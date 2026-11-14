@@ -13,6 +13,7 @@ export type IntroCardData = {
     role: string | null;
     company: string | null;
     floor: number | null;
+    building?: string | null;
   };
 };
 
@@ -30,6 +31,7 @@ export function IntroCard({ intro }: { intro: IntroCardData }) {
           <div className="font-semibold">{other.name}</div>
           <div className="truncate text-xs text-ink-faint">
             {sub}
+            {other.building ? ` · ${other.building}` : ""}
             {other.floor != null ? ` · ${other.floor}th floor` : ""}
           </div>
         </div>

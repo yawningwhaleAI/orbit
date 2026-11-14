@@ -12,6 +12,7 @@ export interface WhyInput {
   otherRole?: string | null;
   otherCompany?: string | null;
   otherFloor?: number | null;
+  otherBuilding?: string | null; // set only when they're in a different building
   otherGives: string[];
   otherWants: string[];
   matchedOtherGiveToOwnerWant: string[]; // what other can give that owner wants
@@ -39,8 +40,9 @@ export function whyYouTwoTemplate(input: WhyInput): string {
   const other = firstName(input.otherName);
   const theyGive = input.matchedOtherGiveToOwnerWant[0];
   const youGive = input.matchedOwnerGiveToOtherWant[0];
-  const where =
-    typeof input.otherFloor === "number"
+  const where = input.otherBuilding
+    ? `a two-minute walk away in ${input.otherBuilding}`
+    : typeof input.otherFloor === "number"
       ? `on the ${ordinal(input.otherFloor)} floor`
       : "in your building";
 

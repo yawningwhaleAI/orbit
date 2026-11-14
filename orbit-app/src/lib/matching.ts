@@ -18,6 +18,8 @@ type Member = {
   role: string | null;
   company: string | null;
   floor: number | null;
+  buildingId: string | null;
+  buildingName: string | null;
   seniority: string | null;
   bio: string | null;
   introsPerWeek: number;
@@ -97,7 +99,10 @@ export function scorePair(owner: Member, other: Member): PairScore {
   const base = 0.5 * gw1 + 0.5 * gw2;
   const twoWay = gw1 > 0.15 && gw2 > 0.15 ? 0.15 : 0;
   const floor =
-    owner.floor != null && other.floor != null && Math.abs(owner.floor - other.floor) <= 2
+    owner.buildingId === other.buildingId &&
+    owner.floor != null &&
+    other.floor != null &&
+    Math.abs(owner.floor - other.floor) <= 2
       ? 0.05
       : 0;
   const sen = seniorityBonus(owner, other);
@@ -115,10 +120,18 @@ export function scorePair(owner: Member, other: Member): PairScore {
   };
 }
 
+// Candidates come from every building in the same city: the pilot buildings
+// are a short walk apart, so one shared pool gives everyone better matches.
 async function loadMembers(buildingId: string): Promise<Member[]> {
+  const building = await db.building.findUnique({ where: { id: buildingId }, select: { city: true } });
   const users = await db.user.findMany({
-    where: { buildingId, onboarded: true, status: "active", isOperator: false },
-    include: { tags: true },
+    where: {
+      onboarded: true,
+      status: "active",
+      isOperator: false,
+      building: { city: building?.city ?? "Gurugram" },
+    },
+    include: { tags: true, building: { select: { name: true } } },
   });
   return users.map((u) => ({
     id: u.id,
@@ -126,6 +139,8 @@ async function loadMembers(buildingId: string): Promise<Member[]> {
     role: u.role,
     company: u.company,
     floor: u.floor,
+    buildingId: u.buildingId,
+    buildingName: u.building?.name ?? null,
     seniority: u.seniority,
     bio: u.bio,
     introsPerWeek: u.introsPerWeek,
@@ -187,6 +202,7 @@ export async function generateForBuilding(
   let created = 0;
 
   for (const owner of members) {
+    if (owner.buildingId !== buildingId) continue; // other buildings run their own pass
     if (opts.onlyOwnerId && owner.id !== opts.onlyOwnerId) continue;
     // Top up to the weekly quota (idempotent: a full week is left alone).
     const existing = await db.match.count({ where: { ownerId: owner.id, week } });
@@ -217,6 +233,7 @@ export async function generateForBuilding(
         otherRole: other.role,
         otherCompany: other.company,
         otherFloor: other.floor,
+        otherBuilding: other.buildingId === owner.buildingId ? null : other.buildingName,
         otherGives: other.gives,
         otherWants: other.wants,
         matchedOtherGiveToOwnerWant: s.otherGiveToOwnerWant,
