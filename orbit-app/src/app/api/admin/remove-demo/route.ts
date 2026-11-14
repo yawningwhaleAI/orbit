@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { generateForBuilding } from "@/lib/matching";
+import { DEMO_EMAIL_DOMAINS } from "@/lib/email";
 
-// Removes demo members (placeholder @example.com accounts) so only real people
+// Removes demo members (placeholder accounts on DEMO_EMAIL_DOMAINS) so only real people
 // remain. Placeholders that stand in for real people without a real-email copy
 // yet are kept (KEEP_NAMES). Dry run unless ?confirm=1:
 //   POST /api/admin/remove-demo            -> lists who would be removed
@@ -13,6 +14,7 @@ export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 const KEEP_NAMES = ["aryan singh", "pragya rathi"];
+const isDemo = { OR: DEMO_EMAIL_DOMAINS.map((d) => ({ email: { endsWith: d } })) };
 const norm = (n: string) => n.trim().replace(/\s+/g, " ").toLowerCase();
 
 export async function POST(req: NextRequest) {
@@ -24,13 +26,13 @@ export async function POST(req: NextRequest) {
   const confirm = new URL(req.url).searchParams.get("confirm") === "1";
 
   const placeholders = await db.user.findMany({
-    where: { email: { endsWith: "@example.com" } },
+    where: isDemo,
     select: { id: true, name: true, email: true },
   });
   const realNames = new Set(
     (
       await db.user.findMany({
-        where: { NOT: { email: { endsWith: "@example.com" } } },
+        where: { NOT: isDemo },
         select: { name: true },
       })
     ).map((u) => norm(u.name))

@@ -3,6 +3,7 @@
 // one click. Safe by default: skips if data already exists unless force=true.
 
 import { db } from "./db";
+import { DEMO_EMAIL_DOMAINS } from "./email";
 import { generateForBuilding } from "./matching";
 import { isoWeekKey } from "./week";
 
@@ -88,7 +89,7 @@ export async function addMembers(
     // A demo placeholder with the same name (e.g. navya.juneja@example.com):
     // switch it to the real email and refresh the profile, keeping its intros.
     const placeholder = await db.user.findFirst({
-      where: { name: m.name, email: { endsWith: "@example.com" }, isOperator: false },
+      where: { name: m.name, isOperator: false, OR: DEMO_EMAIL_DOMAINS.map((d) => ({ email: { endsWith: d } })) },
     });
     if (placeholder) {
       await db.profileTag.deleteMany({ where: { userId: placeholder.id } });

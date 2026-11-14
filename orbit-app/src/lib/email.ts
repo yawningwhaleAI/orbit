@@ -23,7 +23,7 @@ export function emailEnabled(): boolean {
 // Synthetic demo accounts use @orbit.app addresses that don't receive mail.
 // Skip them so we never rack up bounces (which hurt sender reputation).
 // Real sign-ups use their own addresses and always get notified.
-const DEMO_EMAIL_DOMAINS = ["@example.com", "@example.org", "@example.net", "@orbit.app"];
+export const DEMO_EMAIL_DOMAINS = ["@example.com", "@example.org", "@example.net", "@orbit.app"];
 
 export function isSendableAddress(email: string | null | undefined): boolean {
   if (!email) return false;
