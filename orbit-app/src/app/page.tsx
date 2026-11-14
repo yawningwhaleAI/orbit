@@ -178,7 +178,7 @@ export default async function LandingPage() {
               {
                 icon: <Users className="h-5 w-5" />,
                 title: "Share what you give & want",
-                body: "Two minutes. Upload a resume to autofill, or type a few lines. Nothing is public.",
+                body: "Two minutes. Pick what you can give and what you want. Nothing is public.",
               },
               {
                 icon: <Spark className="h-5 w-5" />,
