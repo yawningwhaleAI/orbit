@@ -22,7 +22,10 @@ export function aiEnabled(): boolean {
   return llmEnabled();
 }
 
+// AI-written reasons are opt-in (AI_MATCH_REASONS=on): free-tier providers are
+// often over quota, and a template reason is instant and always works.
 export async function whyYouTwo(input: WhyInput): Promise<string> {
+  if ((process.env.AI_MATCH_REASONS || "").trim().toLowerCase() !== "on") return whyYouTwoTemplate(input);
   const ai = await whyYouTwoLLM(input);
   if (ai) return ai;
   return whyYouTwoTemplate(input);
