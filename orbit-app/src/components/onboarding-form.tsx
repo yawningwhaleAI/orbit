@@ -94,6 +94,7 @@ export function OnboardingForm({
 }: {
   defaults: {
     name: string;
+    phone?: string | null;
     role?: string | null;
     company?: string | null;
     education?: string | null;
@@ -221,6 +222,21 @@ export function OnboardingForm({
         <div>
           <label className={lbl}>Name</label>
           <input name="name" defaultValue={defaults.name} className={input} required />
+        </div>
+        <div>
+          <label className={lbl}>Phone (WhatsApp)</label>
+          <input
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            defaultValue={defaults.phone ?? ""}
+            placeholder="98765 43210"
+            minLength={8}
+            maxLength={20}
+            className={input}
+            required
+          />
+          <p className="mt-1 text-xs text-ink-faint">Only shared with someone once you both confirm a coffee.</p>
         </div>
         <div>
           <label className={lbl}>Role</label>

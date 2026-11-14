@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { offerSlots } from "@/lib/meetings";
 import { googleCalendarUrl } from "@/lib/slots";
+import { whatsappUrl } from "@/lib/phone";
 import { AppNav } from "@/components/app-nav";
 import { Avatar } from "@/components/ui";
 import { Clock, MapPin, Check } from "@/components/icons";
@@ -129,6 +130,20 @@ export default async function MeetingPage({
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-accent-deep" /> {meeting.venue}
             </div>
+            {meeting.status === "confirmed" && other.phone && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-ink-faint">Phone</span>
+                <a href={`tel:${other.phone}`} className="font-medium hover:underline">{other.phone}</a>
+                <a
+                  href={whatsappUrl(other.phone)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-accent-deep hover:underline"
+                >
+                  WhatsApp
+                </a>
+              </div>
+            )}
           </div>
 
           <div className="m-5">
@@ -149,6 +164,7 @@ export default async function MeetingPage({
                 slots30={slots30}
                 slots60={slots60}
                 otherFirstName={other.name.split(" ")[0]}
+                venue={meeting.venue}
                 calendarUrl={calendarUrl}
               />
             )}

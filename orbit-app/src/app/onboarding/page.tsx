@@ -11,7 +11,11 @@ export const dynamic = "force-dynamic";
 // The form's server action (saveOnboarding) also generates intros; give it room.
 export const maxDuration = 60;
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams?: { error?: string; phone?: string };
+}) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.isOperator) redirect("/dashboard");
@@ -44,9 +48,18 @@ export default async function OnboardingPage() {
           A few lines. Orbit uses this to find the three people worth meeting each week. Nothing is public.
         </p>
 
+        {(searchParams?.error === "phone" || searchParams?.phone) && (
+          <div className="mb-6 rounded-xl border border-accent bg-[color:var(--accent-tint)] px-4 py-3 text-sm text-accent-deep">
+            {searchParams?.error === "phone"
+              ? "That phone number didn't look right. Please enter your 10-digit mobile number."
+              : "Add your phone number first — it's shared with the other person once you both confirm a coffee, so you can find each other."}
+          </div>
+        )}
+
         <OnboardingForm
           defaults={{
             name: user.name,
+            phone: user.phone,
             role: user.role,
             company: user.company,
             education: user.education,

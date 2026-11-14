@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { generateForBuilding } from "@/lib/matching";
+import { normalizePhone } from "@/lib/phone";
 
 function splitList(v: FormDataEntryValue | null): string[] {
   return String(v || "")
@@ -23,6 +24,8 @@ export async function saveOnboarding(formData: FormData) {
   const education = String(formData.get("education") || "").trim() || null;
   const seniority = String(formData.get("seniority") || "").trim() || null;
   const bio = String(formData.get("bio") || "").trim() || null;
+  const phone = normalizePhone(formData.get("phone"));
+  if (!phone) redirect("/onboarding?error=phone");
   const floorRaw = String(formData.get("floor") || "").trim();
   const floor = floorRaw ? Math.max(0, Math.min(200, parseInt(floorRaw, 10) || 0)) : null;
 
@@ -46,6 +49,7 @@ export async function saveOnboarding(formData: FormData) {
       seniority,
       bio,
       floor,
+      phone,
       buildingId,
       onboarded: true,
       // reset embeddings so they recompute from new profile (if keys set)

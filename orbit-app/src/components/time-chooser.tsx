@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { clsx } from "clsx";
 import { buttonClass } from "./ui";
 import type { Slot } from "@/lib/slots";
+import { VENUES } from "@/lib/venues";
 
 const CUSTOM_TIMES: string[] = [];
 for (let m = 8 * 60; m <= 19 * 60 + 30; m += 30) {
@@ -26,6 +27,7 @@ export function TimeChooser({
   slots60,
   otherFirstName,
   emptyExtra,
+  initialVenue,
 }: {
   action: (formData: FormData) => void | Promise<void>;
   hidden: Record<string, string>;
@@ -34,8 +36,10 @@ export function TimeChooser({
   slots60: Slot[];
   otherFirstName: string;
   emptyExtra?: React.ReactNode;
+  initialVenue?: string;
 }) {
   const [dur, setDur] = useState<30 | 60>(30);
+  const [venue, setVenue] = useState<string>(initialVenue && (VENUES as readonly string[]).includes(initialVenue) ? initialVenue : VENUES[0]);
   const [sel, setSel] = useState("");
   const [custom, setCustom] = useState(false);
   const [date, setDate] = useState("");
@@ -61,6 +65,28 @@ export function TimeChooser({
       <input type="hidden" name="scheduledAt" value={value} />
       <input type="hidden" name="durationMin" value={dur} />
       <input type="hidden" name="custom" value={custom ? "1" : ""} />
+      <input type="hidden" name="venue" value={venue} />
+
+      <div className="mb-3">
+        <div className="mb-1.5 text-sm text-ink-soft">Where</div>
+        <div className="flex flex-wrap gap-2">
+          {VENUES.map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setVenue(v)}
+              className={clsx(
+                "rounded-full border px-3 py-1 text-sm transition",
+                venue === v
+                  ? "border-accent bg-[color:var(--accent-tint)] text-accent-deep"
+                  : "border-line-strong text-ink-soft hover:border-accent"
+              )}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="mb-3 flex items-center gap-2">
         <span className="text-sm text-ink-soft">Length</span>

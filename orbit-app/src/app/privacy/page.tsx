@@ -38,6 +38,11 @@ export default function PrivacyPage() {
                 If you upload a resume, we read its text to pre-fill those fields. We do{" "}
                 <strong>not</strong> store the file — only the fields you then save.
               </li>
+              <li>
+                Your phone number. It is shown only to someone you have a <strong>confirmed</strong>{" "}
+                coffee with (in the confirmation email and on the meeting page), so you can find each
+                other — never on intros, profiles, or to anyone else.
+              </li>
               <li>The intros you receive and the coffees you book.</li>
             </ul>
           </section>

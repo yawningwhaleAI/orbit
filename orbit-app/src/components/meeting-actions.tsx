@@ -15,6 +15,7 @@ export function MeetingActions({
   slots30,
   slots60,
   otherFirstName,
+  venue,
   calendarUrl,
 }: {
   meetingId: string;
@@ -23,6 +24,7 @@ export function MeetingActions({
   slots30: Slot[];
   slots60: Slot[];
   otherFirstName: string;
+  venue?: string;
   calendarUrl?: string;
 }) {
   const [rescheduling, setRescheduling] = useState(false);
@@ -44,6 +46,7 @@ export function MeetingActions({
         slots30={slots30}
         slots60={slots60}
         otherFirstName={otherFirstName}
+        initialVenue={venue}
       />
       <button type="button" onClick={() => setRescheduling(false)} className={clsx(buttonClass("pass"), "mt-2 w-full")}>
         Back

@@ -65,6 +65,7 @@ model User {
   seniority     String?  // junior | mid | senior | founder | investor
   education     String?
   floor         Int?
+  phone         String?  // shared only with people you have a confirmed coffee with
   bio           String?
   introsPerWeek Int      @default(3)
 

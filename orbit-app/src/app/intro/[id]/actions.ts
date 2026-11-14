@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { nextThursday3pm } from "@/lib/week";
 import { hasClash, canOffer } from "@/lib/meetings";
 import { parseDuration } from "@/lib/slots";
+import { parseVenue, DEFAULT_VENUE } from "@/lib/venues";
 import { appUrl } from "@/lib/magic";
 import { sendEmail, isSendableAddress, moreTimesRequestEmail } from "@/lib/email";
 import { notifyMeeting } from "@/lib/meeting-notify";
@@ -37,6 +38,7 @@ export async function respond(formData: FormData) {
   if (!match || match.ownerId !== user.id) redirect("/home");
 
   if (decision === "accept") {
+    if (!user.phone) redirect("/onboarding?phone=1");
     const picked = parseSlot(formData.get("scheduledAt"));
     const when = picked ?? nextThursday3pm();
     const durationMin = parseDuration(formData.get("durationMin"));
@@ -44,7 +46,7 @@ export async function respond(formData: FormData) {
     if (picked && !(await canOffer(match.otherId, picked, durationMin, custom))) {
       redirect(`/intro/${match.id}?error=slot_taken`);
     }
-    const venue = `${match.building.cafeName}, ${match.building.name}`;
+    const venue = parseVenue(formData.get("venue")) ?? DEFAULT_VENUE;
 
     if (await hasClash([user.id, match.otherId], when, durationMin, match.id)) {
       redirect(`/intro/${match.id}?error=slot_taken`);

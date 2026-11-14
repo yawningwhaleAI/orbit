@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { hasClash, canOffer } from "@/lib/meetings";
 import { parseDuration } from "@/lib/slots";
+import { parseVenue } from "@/lib/venues";
 import { notifyMeeting, type Party } from "@/lib/meeting-notify";
 
 function parseSlot(v: FormDataEntryValue | null): Date | null {
@@ -34,14 +35,15 @@ async function loadParticipantMeeting(meetingId: string) {
 
 function parties(match: { owner: any; other: any }): { owner: Party; other: Party } {
   return {
-    owner: { id: match.owner.id, name: match.owner.name, email: match.owner.email, role: match.owner.role },
-    other: { id: match.other.id, name: match.other.name, email: match.other.email, role: match.other.role },
+    owner: { id: match.owner.id, name: match.owner.name, email: match.owner.email, role: match.owner.role, phone: match.owner.phone },
+    other: { id: match.other.id, name: match.other.name, email: match.other.email, role: match.other.role, phone: match.other.phone },
   };
 }
 
 export async function confirmMeeting(formData: FormData) {
   const id = String(formData.get("meetingId") || "");
   const { user, meeting, match } = await loadParticipantMeeting(id);
+  if (!user.phone) redirect("/onboarding?phone=1");
   // Only the person who did NOT propose can confirm.
   if (meeting.status === "proposed" && meeting.proposedById !== user.id) {
     await db.meeting.update({
@@ -98,6 +100,7 @@ export async function rescheduleMeeting(formData: FormData) {
   const when = parseSlot(formData.get("scheduledAt"));
   if (!when) redirect(`/meeting/${id}?error=bad_time`);
   const durationMin = parseDuration(formData.get("durationMin"));
+  const venue = parseVenue(formData.get("venue")) ?? meeting.venue;
   const counterpartId = user.id === match.ownerId ? match.otherId : match.ownerId;
   if (
     !(await canOffer(counterpartId, when, durationMin, formData.get("custom") === "1")) ||
@@ -108,14 +111,14 @@ export async function rescheduleMeeting(formData: FormData) {
   // New time needs the other side to confirm again.
   await db.meeting.update({
     where: { id: meeting.id },
-    data: { scheduledAt: when, durationMin, status: "proposed", proposedById: user.id, respondedAt: null },
+    data: { scheduledAt: when, durationMin, venue, status: "proposed", proposedById: user.id, respondedAt: null },
   });
   const p = parties(match);
   await notifyMeeting("proposed", {
     meetingId: meeting.id,
     scheduledAt: when,
     durationMin,
-    venue: meeting.venue,
+    venue,
     reason: match.reason,
     owner: p.owner,
     other: p.other,

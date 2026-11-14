@@ -153,11 +153,16 @@ Confirm or reschedule: ${opts.meetingUrl}`;
 export function coffeeConfirmedEmail(opts: {
   recipientFirstName: string;
   otherName: string;
+  otherPhone?: string | null;
   whenLabel: string;
   venue: string;
   calendarUrl: string;
 }): { subject: string; html: string; text: string } {
   const subject = `Coffee confirmed with ${opts.otherName}`;
+  const wa = opts.otherPhone ? `https://wa.me/${opts.otherPhone.replace(/\D/g, "")}` : null;
+  const phoneRow = opts.otherPhone
+    ? `<tr><td style="padding:8px 0;color:#78716c;">Phone</td><td style="padding:8px 0;font-weight:600;">${opts.otherPhone} · <a href="${wa}" style="color:#b45a1f;">WhatsApp</a></td></tr>`
+    : "";
   const html = WRAP(`
     <h1 style="font-size:22px;margin:0 0 6px;color:#1c1917;">Coffee confirmed ✓</h1>
     <p style="font-size:15px;color:#44403c;margin:0 0 18px;">
@@ -166,14 +171,16 @@ export function coffeeConfirmedEmail(opts: {
     <table style="width:100%;font-size:14px;color:#1c1917;border-collapse:collapse;">
       <tr><td style="padding:8px 0;color:#78716c;width:90px;">When</td><td style="padding:8px 0;font-weight:600;">${opts.whenLabel}</td></tr>
       <tr><td style="padding:8px 0;color:#78716c;">Where</td><td style="padding:8px 0;font-weight:600;">${opts.venue}</td></tr>
+      ${phoneRow}
     </table>
+    ${opts.otherPhone ? `<p style="font-size:13px;color:#78716c;margin:14px 0 0;">Message ${opts.otherName.split(" ")[0]} to say hi or if plans change.</p>` : ""}
     <a href="${opts.calendarUrl}" style="display:inline-block;margin-top:20px;background:#b45a1f;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 20px;border-radius:10px;">
       Add to Google Calendar
     </a>
   `);
   const text = `Coffee confirmed with ${opts.otherName}.
 When: ${opts.whenLabel}
-Where: ${opts.venue}
+Where: ${opts.venue}${opts.otherPhone ? `\nPhone: ${opts.otherPhone} (WhatsApp: ${wa})` : ""}
 Add to calendar: ${opts.calendarUrl}`;
   return { subject, html, text };
 }
