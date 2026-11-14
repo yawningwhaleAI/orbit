@@ -55,6 +55,14 @@ export async function chatDetailed(prompt: string, opts: ChatOptions = {}): Prom
   const maxTokens = opts.maxTokens ?? 300;
   const errors: string[] = [];
 
+  // Optional: LLM_PRIMARY=anthropic makes Claude the first choice (needs ANTHROPIC_API_KEY).
+  const claudeFirst = env("LLM_PRIMARY") === "anthropic" && !!env("ANTHROPIC_API_KEY");
+  if (claudeFirst) {
+    const r = await anthropic(prompt, maxTokens, opts);
+    if (r.text) return { text: r.text };
+    if (r.error) errors.push(`Anthropic: ${r.error}`);
+  }
+
   // Gemini first: fastest option, and a quota error (429) fails instantly so we
   // fall through to OpenRouter. Try the configured model, then "-latest" aliases.
   if (env("GEMINI_API_KEY")) {
@@ -85,7 +93,7 @@ export async function chatDetailed(prompt: string, opts: ChatOptions = {}): Prom
     }
   }
 
-  if (env("ANTHROPIC_API_KEY")) {
+  if (env("ANTHROPIC_API_KEY") && !claudeFirst) {
     const r = await anthropic(prompt, maxTokens, opts);
     if (r.text) return { text: r.text };
     if (r.error) errors.push(`Anthropic: ${r.error}`);
@@ -204,7 +212,7 @@ async function gemini(
 }
 
 async function anthropic(prompt: string, maxTokens: number, opts: ChatOptions): Promise<ChatResult> {
-  const model = env("ANTHROPIC_MODEL") || "claude-sonnet-5";
+  const model = env("ANTHROPIC_MODEL") || "claude-haiku-5-5";
   try {
     const res = await fetchWithTimeout("https://api.anthropic.com/v1/messages", {
       method: "POST",

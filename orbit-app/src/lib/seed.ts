@@ -11,7 +11,7 @@ type Seed = {
   name: string;
   role: string;
   company: string;
-  floor: number;
+  floor?: number;
   seniority: string;
   education: string;
   bio: string;
@@ -62,6 +62,56 @@ const BUILDINGS = [
   { name: "Capital Tower", code: "CAPITAL", type: "tower", floors: 18 },
 ];
 
+// Members added after launch. Keep real people's profiles out of the repo: POST
+// them to /api/admin/add-members instead. Use placeholder @example.com emails so
+// nobody is emailed before they sign up themselves.
+export const ADDITIONAL_MEMBERS: Seed[] = [];
+
+// Non-destructive: adds only members whose email isn't taken, into one building,
+// then creates intros for the newcomers. Never deletes or edits anyone.
+export async function addMembers(
+  list: Seed[] = ADDITIONAL_MEMBERS,
+  buildingName = "DLF Tower"
+): Promise<{ added: string[]; existing: string[]; intros: number }> {
+  const building = await db.building.findFirst({ where: { name: buildingName } });
+  if (!building) throw new Error(`Building "${buildingName}" not found`);
+
+  const added: string[] = [];
+  const existing: string[] = [];
+  for (const m of list) {
+    const email = m.email.trim().toLowerCase();
+    if (await db.user.findUnique({ where: { email } })) {
+      existing.push(email);
+      continue;
+    }
+    await db.user.create({
+      data: {
+        email,
+        name: m.name,
+        avatarSeed: m.name[0],
+        onboarded: true,
+        status: "active",
+        role: m.role,
+        company: m.company,
+        floor: m.floor ?? null,
+        seniority: m.seniority,
+        education: m.education,
+        bio: m.bio,
+        buildingId: building.id,
+        tags: {
+          create: [
+            ...m.gives.map((label) => ({ kind: "give", label })),
+            ...m.wants.map((label) => ({ kind: "want", label })),
+          ],
+        },
+      },
+    });
+    added.push(email);
+  }
+  const r = await generateForBuilding(building.id);
+  return { added, existing, intros: r.matchesCreated };
+}
+
 export interface SeedResult {
   skipped: boolean;
   users?: number;
@@ -108,7 +158,7 @@ export async function seedDemo({ force = false } = {}): Promise<SeedResult> {
   }
   const dlfId = buildingByCode["DLF-TOWER"];
 
-  for (const m of MEMBERS) {
+  for (const m of [...MEMBERS, ...ADDITIONAL_MEMBERS]) {
     await db.user.create({
       data: {
         email: m.email,
@@ -118,7 +168,7 @@ export async function seedDemo({ force = false } = {}): Promise<SeedResult> {
         status: "active",
         role: m.role,
         company: m.company,
-        floor: m.floor,
+        floor: m.floor ?? null,
         seniority: m.seniority,
         education: m.education,
         bio: m.bio,
