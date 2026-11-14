@@ -14,7 +14,7 @@ export const maxDuration = 60;
 export default async function OnboardingPage({
   searchParams,
 }: {
-  searchParams?: { error?: string; phone?: string };
+  searchParams?: { error?: string; phone?: string; next?: string };
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -71,6 +71,7 @@ export default async function OnboardingPage({
             wants,
           }}
           buildings={buildings}
+          next={searchParams?.next}
           giveOptions={GIVE_SUGGESTIONS}
           wantOptions={WANT_SUGGESTIONS}
           seniority={SENIORITY}

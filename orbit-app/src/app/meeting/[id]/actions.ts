@@ -35,15 +35,15 @@ async function loadParticipantMeeting(meetingId: string) {
 
 function parties(match: { owner: any; other: any }): { owner: Party; other: Party } {
   return {
-    owner: { id: match.owner.id, name: match.owner.name, email: match.owner.email, role: match.owner.role, phone: match.owner.phone },
-    other: { id: match.other.id, name: match.other.name, email: match.other.email, role: match.other.role, phone: match.other.phone },
+    owner: { id: match.owner.id, name: match.owner.name, email: match.owner.email, role: match.owner.role, phone: match.owner.phone, isNew: !match.owner.lastLoginAt && !match.owner.phone },
+    other: { id: match.other.id, name: match.other.name, email: match.other.email, role: match.other.role, phone: match.other.phone, isNew: !match.other.lastLoginAt && !match.other.phone },
   };
 }
 
 export async function confirmMeeting(formData: FormData) {
   const id = String(formData.get("meetingId") || "");
   const { user, meeting, match } = await loadParticipantMeeting(id);
-  if (!user.phone) redirect("/onboarding?phone=1");
+  if (!user.phone) redirect(`/onboarding?phone=1&next=/meeting/${meeting.id}`);
   // Only the person who did NOT propose can confirm.
   if (meeting.status === "proposed" && meeting.proposedById !== user.id) {
     await db.meeting.update({

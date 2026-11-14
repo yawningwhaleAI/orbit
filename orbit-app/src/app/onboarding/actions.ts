@@ -25,7 +25,10 @@ export async function saveOnboarding(formData: FormData) {
   const seniority = String(formData.get("seniority") || "").trim() || null;
   const bio = String(formData.get("bio") || "").trim() || null;
   const phone = normalizePhone(formData.get("phone"));
-  if (!phone) redirect("/onboarding?error=phone");
+  // Only same-site intro/meeting pages, so this can't become an open redirect.
+  const nextRaw = String(formData.get("next") || "");
+  const next = /^\/(meeting|intro)\/[A-Za-z0-9_-]+$/.test(nextRaw) ? nextRaw : null;
+  if (!phone) redirect(`/onboarding?error=phone${next ? `&next=${encodeURIComponent(next)}` : ""}`);
   const floorRaw = String(formData.get("floor") || "").trim();
   const floor = floorRaw ? Math.max(0, Math.min(200, parseInt(floorRaw, 10) || 0)) : null;
 
@@ -78,5 +81,5 @@ export async function saveOnboarding(formData: FormData) {
     }
   }
 
-  redirect(user.onboarded ? "/home" : "/availability?welcome=1");
+  redirect(next && user.onboarded ? next : user.onboarded ? "/home" : "/availability?welcome=1");
 }

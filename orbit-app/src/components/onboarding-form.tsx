@@ -86,12 +86,14 @@ function ChipSelect({
 }
 
 export function OnboardingForm({
+  next,
   defaults,
   buildings,
   giveOptions,
   wantOptions,
   seniority,
 }: {
+  next?: string;
   defaults: {
     name: string;
     phone?: string | null;
@@ -173,6 +175,7 @@ export function OnboardingForm({
 
   return (
     <form action={saveOnboarding} className="space-y-6">
+      {next && <input type="hidden" name="next" value={next} />}
       <input type="hidden" name="gives" value={gives.join("|")} />
       <input type="hidden" name="wants" value={wants.join("|")} />
 

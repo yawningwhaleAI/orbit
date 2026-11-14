@@ -43,7 +43,16 @@ export default async function HomePage({ searchParams }: { searchParams?: { save
   );
 
   const building = user.building?.name ?? "your building";
-  const accepted = intros.filter((i) => i.status === "accepted" && i.meeting);
+  // Every upcoming/recent coffee this member is part of, whichever side proposed it.
+  const coffees = await db.meeting.findMany({
+    where: {
+      status: { in: ["proposed", "confirmed", "booked", "held"] },
+      scheduledAt: { gte: new Date(Date.now() - 3 * 24 * 3600 * 1000) },
+      match: { OR: [{ ownerId: user.id }, { otherId: user.id }] },
+    },
+    include: { match: { include: { owner: true, other: true } } },
+    orderBy: { scheduledAt: "asc" },
+  });
 
   return (
     <>
@@ -99,37 +108,55 @@ export default async function HomePage({ searchParams }: { searchParams?: { save
           </div>
         )}
 
-        {accepted.length > 0 && (
+        {coffees.length > 0 && (
           <div className="mt-10">
-            <Eyebrow>Booked coffees</Eyebrow>
+            <Eyebrow>Your coffees</Eyebrow>
             <div className="space-y-2">
-              {accepted.map((i) => (
-                <Link
-                  key={i.id}
-                  href={`/meeting/${i.meeting!.id}`}
-                  className="flex items-center justify-between rounded-xl border border-line bg-elev px-4 py-3 text-sm transition hover:border-line-strong"
-                >
-                  <span className="font-medium">
-                    {i.other.name}
-                    <span className="ml-2 text-[0.7rem] font-semibold uppercase tracking-wide text-ink-faint">
-                      {i.meeting!.status === "held"
-                        ? "· met"
-                        : i.meeting!.status === "confirmed" || i.meeting!.status === "booked"
-                          ? "· confirmed"
-                          : "· pending"}
+              {coffees.map((m) => {
+                const them = m.match.ownerId === user.id ? m.match.other : m.match.owner;
+                const needsReply = m.status === "proposed" && m.proposedById !== user.id;
+                const tag =
+                  m.status === "held"
+                    ? "· met"
+                    : m.status === "confirmed" || m.status === "booked"
+                      ? "· confirmed"
+                      : needsReply
+                        ? "· needs your reply"
+                        : "· waiting for them";
+                return (
+                  <Link
+                    key={m.id}
+                    href={`/meeting/${m.id}`}
+                    className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-3 text-sm transition ${
+                      needsReply
+                        ? "border-accent bg-[color:var(--accent-tint)]"
+                        : "border-line bg-elev hover:border-line-strong"
+                    }`}
+                  >
+                    <span className="font-medium">
+                      {them.name}
+                      <span
+                        className={`ml-2 text-[0.7rem] font-semibold uppercase tracking-wide ${
+                          needsReply ? "text-accent-deep" : "text-ink-faint"
+                        }`}
+                      >
+                        {tag}
+                      </span>
                     </span>
-                  </span>
-                  <span className="text-ink-faint">
-                    {i.meeting!.scheduledAt.toLocaleDateString("en-IN", {
-    timeZone: "Asia/Kolkata",
-                      weekday: "short",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}{" "}
-                    · {i.meeting!.venue}
-                  </span>
-                </Link>
-              ))}
+                    <span className="text-ink-faint">
+                      {m.scheduledAt.toLocaleString("en-IN", {
+                        timeZone: "Asia/Kolkata",
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}{" "}
+                      · {m.venue}
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}

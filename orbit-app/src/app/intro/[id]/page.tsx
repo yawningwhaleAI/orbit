@@ -27,7 +27,7 @@ export default async function IntroPage({
   searchParams: { error?: string; asked?: string };
 }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(`/login?mode=login&next=/intro/${params.id}`);
 
   const match = await db.match.findUnique({
     where: { id: params.id },

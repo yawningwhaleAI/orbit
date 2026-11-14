@@ -21,7 +21,7 @@ export default async function MeetingPage({
   searchParams: { error?: string; thanks?: string };
 }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(`/login?mode=login&next=/meeting/${params.id}`);
 
   const meeting = await db.meeting.findUnique({
     where: { id: params.id },

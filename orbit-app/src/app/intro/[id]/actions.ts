@@ -38,7 +38,7 @@ export async function respond(formData: FormData) {
   if (!match || match.ownerId !== user.id) redirect("/home");
 
   if (decision === "accept") {
-    if (!user.phone) redirect("/onboarding?phone=1");
+    if (!user.phone) redirect(`/onboarding?phone=1&next=/intro/${match.id}`);
     const picked = parseSlot(formData.get("scheduledAt"));
     const when = picked ?? nextThursday3pm();
     const durationMin = parseDuration(formData.get("durationMin"));
@@ -70,7 +70,7 @@ export async function respond(formData: FormData) {
       venue,
       reason: match.reason,
       owner: { id: user.id, name: user.name, email: user.email, role: user.role },
-      other: { id: match.other.id, name: match.other.name, email: match.other.email, role: match.other.role },
+      other: { id: match.other.id, name: match.other.name, email: match.other.email, role: match.other.role, isNew: !match.other.lastLoginAt && !match.other.phone },
       actorId: user.id,
     });
 

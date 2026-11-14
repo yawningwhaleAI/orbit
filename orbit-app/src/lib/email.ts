@@ -126,8 +126,17 @@ export function coffeeProposedEmail(opts: {
   whenLabel: string;
   venue: string;
   meetingUrl: string;
+  recipientIsNew?: boolean; // listed by the team, never signed in
 }): { subject: string; html: string; text: string } {
   const role = opts.proposerRole ? ` (${opts.proposerRole})` : "";
+  const newNote = opts.recipientIsNew
+    ? `<p style="font-size:14px;color:#44403c;margin:0 0 18px;padding:12px 14px;background:#f5f0ea;border-radius:10px;">
+      <strong>New to Orbit?</strong> It's a small network for people working in the same buildings in Gurugram:
+      each week it suggests a few people worth a coffee. The Orbit team started a basic profile for you so
+      colleagues could find you. Sign in with this email to confirm the coffee, and review or edit your profile.
+      Not interested? Just ignore this email.
+    </p>`
+    : "";
   const subject = `${opts.proposerName} wants to grab a coffee`;
   const html = WRAP(`
     <h1 style="font-size:22px;margin:0 0 6px;color:#1c1917;">A coffee invite ☕</h1>
@@ -135,6 +144,7 @@ export function coffeeProposedEmail(opts: {
       Hi ${opts.recipientFirstName}, <strong>${opts.proposerName}</strong>${role} picked you as one
       of their intros this week and proposed a time. Confirm it, or suggest another.
     </p>
+    ${newNote}
     <table style="width:100%;font-size:14px;color:#1c1917;border-collapse:collapse;">
       <tr><td style="padding:8px 0;color:#78716c;width:90px;">When</td><td style="padding:8px 0;font-weight:600;">${opts.whenLabel}</td></tr>
       <tr><td style="padding:8px 0;color:#78716c;">Where</td><td style="padding:8px 0;font-weight:600;">${opts.venue}</td></tr>
@@ -146,7 +156,7 @@ export function coffeeProposedEmail(opts: {
   const text = `${opts.proposerName}${role} proposed a coffee.
 When: ${opts.whenLabel}
 Where: ${opts.venue}
-Confirm or reschedule: ${opts.meetingUrl}`;
+Confirm or reschedule: ${opts.meetingUrl}${opts.recipientIsNew ? "\n\nNew to Orbit? It's a network for people in your building. The Orbit team started a profile for you; sign in with this email to confirm and review it. Not interested? Ignore this email." : ""}`;
   return { subject, html, text };
 }
 

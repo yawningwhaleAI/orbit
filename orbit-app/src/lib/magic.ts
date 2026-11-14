@@ -25,8 +25,16 @@ export async function createLoginToken(email: string, name?: string): Promise<st
   return raw;
 }
 
-export function magicLinkUrl(raw: string): string {
-  return `${appUrl()}/api/auth/verify?token=${raw}`;
+export function magicLinkUrl(raw: string, next?: string | null): string {
+  const n = safeNext(next);
+  return `${appUrl()}/api/auth/verify?token=${raw}${n ? `&next=${encodeURIComponent(n)}` : ""}`;
+}
+
+// Where to land after sign-in. Only this site's intro/meeting pages are allowed,
+// so a crafted link can never redirect off-site.
+export function safeNext(v: unknown): string | null {
+  const s = String(v || "");
+  return /^\/(meeting|intro)\/[A-Za-z0-9_-]+$/.test(s) ? s : null;
 }
 
 // Verify and consume a token. Returns the email/name if valid, else null.

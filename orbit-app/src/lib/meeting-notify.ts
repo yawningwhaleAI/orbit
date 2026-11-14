@@ -12,7 +12,7 @@ import {
   coffeeCancelledEmail,
 } from "./email";
 
-export type Party = { id: string; name: string; email: string; role?: string | null; phone?: string | null };
+export type Party = { id: string; name: string; email: string; role?: string | null; phone?: string | null; isNew?: boolean };
 
 function whenLabel(d: Date): string {
   return d.toLocaleString("en-IN", {
@@ -56,6 +56,7 @@ export async function notifyMeeting(
           whenLabel: label,
           venue,
           meetingUrl,
+          recipientIsNew: !!counterpart.isNew,
         });
         sends.push(sendEmail({ to: counterpart.email, subject: m.subject, html: m.html, text: m.text }));
       }

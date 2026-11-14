@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { setSessionCookie, authReady } from "@/lib/auth";
-import { consumeLoginToken, appUrl } from "@/lib/magic";
+import { consumeLoginToken, appUrl, safeNext } from "@/lib/magic";
 
 // Magic-link landing. Verifies a one-time token, creates/finds the user, sets
 // the session cookie, and redirects into the app.
@@ -51,8 +51,10 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  await db.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
   await setSessionCookie(user.id);
 
-  const dest = user.isOperator ? "/dashboard" : user.onboarded ? "/home" : "/onboarding";
+  const next = safeNext(new URL(req.url).searchParams.get("next"));
+  const dest = user.isOperator ? "/dashboard" : !user.onboarded ? "/onboarding" : next ?? "/home";
   return NextResponse.redirect(`${appUrl()}${dest}`);
 }

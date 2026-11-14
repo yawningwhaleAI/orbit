@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { setSessionCookie, authReady } from "@/lib/auth";
 import { emailEnabled, sendEmail, magicLinkEmail, isSendableAddress } from "@/lib/email";
-import { createLoginToken, magicLinkUrl } from "@/lib/magic";
+import { createLoginToken, magicLinkUrl, safeNext } from "@/lib/magic";
 
 const IS_PROD = process.env.NODE_ENV === "production";
 
@@ -37,7 +37,7 @@ export async function requestMagicLink(formData: FormData) {
       redirect(`/login?sent=1&mode=${isSignup ? "signup" : "login"}`);
     }
     const raw = await createLoginToken(email, name);
-    const mail = magicLinkEmail({ url: magicLinkUrl(raw), isSignup });
+    const mail = magicLinkEmail({ url: magicLinkUrl(raw, safeNext(formData.get("next"))), isSignup });
     // Best-effort send: a provider hiccup must not throw the action. We still
     // show the confirmation (and don't leak whether the email exists).
     try {

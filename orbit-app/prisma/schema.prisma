@@ -57,6 +57,7 @@ model User {
   avatarSeed    String?  // first letter / color seed
   isOperator    Boolean  @default(false)
   onboarded     Boolean  @default(false)
+  lastLoginAt   DateTime? // null = listed by the team but never signed in yet
   status        String   @default("active") // active | paused
 
   // Profile

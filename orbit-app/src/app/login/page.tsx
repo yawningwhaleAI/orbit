@@ -1,3 +1,4 @@
+import { safeNext } from "@/lib/magic";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
@@ -8,12 +9,13 @@ import { requestMagicLink } from "./actions";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { error?: string; mode?: string; sent?: string; b?: string };
+  searchParams: { error?: string; mode?: string; sent?: string; b?: string; next?: string };
 }) {
   const user = await getCurrentUser();
   if (user) {
     if (user.isOperator) redirect("/dashboard");
-    redirect(user.onboarded ? "/home" : "/onboarding");
+    const next = safeNext(searchParams?.next);
+    redirect(!user.onboarded ? "/onboarding" : next ?? "/home");
   }
 
   const signup = searchParams?.mode !== "login"; // default to sign-up
@@ -82,6 +84,7 @@ export default async function LoginPage({
 
       <form action={requestMagicLink} className="mt-8 space-y-3">
         <input type="hidden" name="mode" value={signup ? "signup" : "login"} />
+        {safeNext(searchParams?.next) && <input type="hidden" name="next" value={safeNext(searchParams?.next)!} />}
         {signup && (
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-ink-faint">
