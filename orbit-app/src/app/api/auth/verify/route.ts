@@ -10,6 +10,17 @@ import { consumeLoginToken, appUrl } from "@/lib/magic";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Comma-separated list in env. "name@gmail.com" also covers "name+anything@gmail.com".
+function isResetEmail(email: string): boolean {
+  const list = (process.env.TEST_RESET_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const e = email.trim().toLowerCase();
+  const base = e.replace(/\+[^@]*@/, "@");
+  return list.includes(e) || list.includes(base);
+}
+
 export async function GET(req: NextRequest) {
   if (!authReady) {
     return NextResponse.redirect(`${appUrl()}/login?error=unavailable`);
@@ -22,6 +33,13 @@ export async function GET(req: NextRequest) {
   }
 
   let user = await db.user.findUnique({ where: { email: result.email } });
+  // Test accounts (TEST_RESET_EMAILS) start from scratch on every sign-in so the
+  // full sign-up flow can be re-run. Deleting the user cascades to their tags,
+  // free times, intros and coffees.
+  if (user && isResetEmail(result.email)) {
+    await db.user.delete({ where: { id: user.id } });
+    user = null;
+  }
   if (!user) {
     user = await db.user.create({
       data: {
