@@ -6,6 +6,8 @@ import { buttonClass } from "./ui";
 import { ArrowRight } from "./icons";
 import { saveOnboarding } from "@/app/onboarding/actions";
 
+const RESUME_AUTOFILL = false;
+
 function ChipSelect({
   label,
   tone,
@@ -172,7 +174,8 @@ export function OnboardingForm({
       <input type="hidden" name="gives" value={gives.join("|")} />
       <input type="hidden" name="wants" value={wants.join("|")} />
 
-      {/* Resume upload */}
+      {/* Resume upload: hidden until parsing is fast enough */}
+      {RESUME_AUTOFILL && (
       <div className="rounded-2xl border border-dashed border-line-strong bg-sunken p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -197,6 +200,7 @@ export function OnboardingForm({
           </p>
         )}
       </div>
+      )}
 
       <div>
         <label className={lbl}>Which building do you work in?</label>
