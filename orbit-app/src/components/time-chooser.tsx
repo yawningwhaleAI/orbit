@@ -68,7 +68,7 @@ export function TimeChooser({
       <input type="hidden" name="venue" value={venue} />
 
       <div className="mb-3">
-        <div className="mb-1.5 text-sm text-ink-soft">Where</div>
+        <div className="mb-1.5 text-sm text-ink-soft">Where to meet</div>
         <div className="flex flex-wrap gap-2">
           {VENUES.map((v) => (
             <button
