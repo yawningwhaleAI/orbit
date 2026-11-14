@@ -8,7 +8,7 @@
 import { db } from "./db";
 import { cosine, lexicalGiveWant, tokenize, jaccard } from "./similarity";
 import { embed, embeddingsEnabled, parseVec, serializeVec } from "./embeddings";
-import { whyYouTwo } from "./ai";
+import { whyYouTwo, whyYouTwoTemplate } from "./ai";
 import { isoWeekKey } from "./week";
 
 type TagRow = { kind: string; label: string };
@@ -160,6 +160,7 @@ export interface GenerateOptions {
   week?: string;
   regenerate?: boolean; // delete existing matches for the week first
   onlyOwnerId?: string; // generate intros for just this member (fast path)
+  fastReasons?: boolean; // template reasons, no AI call (interactive paths)
 }
 
 export interface GenerateResult {
@@ -207,7 +208,7 @@ export async function generateForBuilding(
 
     for (const s of scored) {
       const other = byId.get(s.other.id)!;
-      const reason = await whyYouTwo({
+      const reason = await (opts.fastReasons ? async (i: Parameters<typeof whyYouTwo>[0]) => whyYouTwoTemplate(i) : whyYouTwo)({
         ownerName: owner.name,
         ownerGives: owner.gives,
         ownerWants: owner.wants,

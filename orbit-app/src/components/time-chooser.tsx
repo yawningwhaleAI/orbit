@@ -1,4 +1,5 @@
 "use client";
+import { SubmitButton } from "./submit-button";
 
 import { useMemo, useState } from "react";
 import { clsx } from "clsx";
@@ -166,9 +167,9 @@ export function TimeChooser({
         {custom ? "← Back to " + otherFirstName + "'s free times" : "None of these work? Suggest another time"}
       </button>
 
-      <button type="submit" disabled={!value} className={clsx(buttonClass("primary"), "mt-4 w-full")}>
+      <SubmitButton disabled={!value} className="mt-4" pendingLabel="Sending…">
         {value ? submitLabel : "Select a time"}
-      </button>
+      </SubmitButton>
     </form>
   );
 }

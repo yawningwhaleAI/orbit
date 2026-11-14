@@ -1,4 +1,5 @@
 "use client";
+import { SubmitButton } from "./submit-button";
 
 import { useState } from "react";
 import { clsx } from "clsx";
@@ -72,9 +73,9 @@ export function AvailabilityGrid({ initial, welcome }: { initial: string[]; welc
         </button>
       </div>
 
-      <button type="submit" className={clsx(buttonClass("primary"), "mt-5 w-full")}>
+      <SubmitButton className="mt-5">
         {welcome ? "Save & see my intros" : "Save my free times"}
-      </button>
+      </SubmitButton>
     </form>
   );
 }

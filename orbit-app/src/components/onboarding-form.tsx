@@ -1,4 +1,5 @@
 "use client";
+import { SubmitButton } from "./submit-button";
 
 import { useRef, useState } from "react";
 import { clsx } from "clsx";
@@ -258,9 +259,9 @@ export function OnboardingForm({
       <ChipSelect label="I can give" tone="give" options={giveOptions} value={gives} onChange={setGives} />
       <ChipSelect label="I want" tone="want" options={wantOptions} value={wants} onChange={setWants} />
 
-      <button type="submit" className={buttonClass("primary") + " w-full"}>
+      <SubmitButton pendingLabel="Finding your people…">
         Finish & see my intros <ArrowRight className="h-4 w-4" />
-      </button>
+      </SubmitButton>
     </form>
   );
 }

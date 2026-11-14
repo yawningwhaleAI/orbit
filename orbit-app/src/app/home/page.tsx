@@ -29,7 +29,7 @@ export default async function HomePage({ searchParams }: { searchParams?: { save
   // No intros yet this week (e.g. joined mid-week): make this member's now.
   if (intros.length === 0 && user.buildingId) {
     try {
-      const r = await generateForBuilding(user.buildingId, { week, onlyOwnerId: user.id });
+      const r = await generateForBuilding(user.buildingId, { week, onlyOwnerId: user.id, fastReasons: true });
       if (r.matchesCreated > 0) intros = await loadIntros();
     } catch (e) {
       console.warn("[home] intro generation failed:", e);
