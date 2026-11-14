@@ -159,6 +159,7 @@ async function ensureEmbeddings(members: Member[]): Promise<void> {
 export interface GenerateOptions {
   week?: string;
   regenerate?: boolean; // delete existing matches for the week first
+  onlyOwnerId?: string; // generate intros for just this member (fast path)
 }
 
 export interface GenerateResult {
@@ -185,6 +186,7 @@ export async function generateForBuilding(
   let created = 0;
 
   for (const owner of members) {
+    if (opts.onlyOwnerId && owner.id !== opts.onlyOwnerId) continue;
     // Skip owners who already have intros this week (idempotent unless regen).
     const existing = await db.match.count({ where: { ownerId: owner.id, week } });
     if (existing > 0) continue;

@@ -66,7 +66,7 @@ export async function saveOnboarding(formData: FormData) {
       // Cap the wait so a slow AI provider can never trap the user on this page;
       // missing intros are filled in by the weekly run.
       await Promise.race([
-        generateForBuilding(buildingId),
+        generateForBuilding(buildingId, { onlyOwnerId: user.id }),
         new Promise((resolve) => setTimeout(resolve, 40000)),
       ]);
     } catch (e) {

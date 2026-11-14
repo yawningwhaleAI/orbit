@@ -7,8 +7,10 @@ import { AppNav } from "@/components/app-nav";
 import { Eyebrow } from "@/components/ui";
 import { IntroCard } from "@/components/intro-card";
 import { sharedSlotCount } from "@/lib/meetings";
+import { generateForBuilding } from "@/lib/matching";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export default async function HomePage({ searchParams }: { searchParams?: { saved?: string } }) {
   const user = await getCurrentUser();
@@ -17,11 +19,22 @@ export default async function HomePage({ searchParams }: { searchParams?: { save
   if (!user.onboarded) redirect("/onboarding");
 
   const week = isoWeekKey();
-  const intros = await db.match.findMany({
-    where: { ownerId: user.id, week },
-    include: { other: true, meeting: true },
-    orderBy: { score: "desc" },
-  });
+  const loadIntros = () =>
+    db.match.findMany({
+      where: { ownerId: user.id, week },
+      include: { other: true, meeting: true },
+      orderBy: { score: "desc" },
+    });
+  let intros = await loadIntros();
+  // No intros yet this week (e.g. joined mid-week): make this member's now.
+  if (intros.length === 0 && user.buildingId) {
+    try {
+      const r = await generateForBuilding(user.buildingId, { week, onlyOwnerId: user.id });
+      if (r.matchesCreated > 0) intros = await loadIntros();
+    } catch (e) {
+      console.warn("[home] intro generation failed:", e);
+    }
+  }
 
   const sharedCounts = await Promise.all(
     intros.map((i) =>
