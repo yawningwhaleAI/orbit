@@ -28,5 +28,5 @@ export async function saveAvailability(formData: FormData) {
   await db.user.update({ where: { id: user.id }, data: { availabilitySet: true } });
 
   revalidatePath("/home");
-  redirect(formData.get("welcome") ? "/home" : "/availability?saved=1");
+  redirect(formData.get("welcome") ? "/home" : "/home?saved=1");
 }

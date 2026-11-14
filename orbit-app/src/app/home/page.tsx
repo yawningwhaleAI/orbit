@@ -10,7 +10,7 @@ import { sharedSlotCount } from "@/lib/meetings";
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams?: { saved?: string } }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.isOperator) redirect("/dashboard");
@@ -43,6 +43,12 @@ export default async function HomePage() {
         <p className="mb-8 mt-3 text-ink-soft">
           Curated for you in {building} this week. Tap one to see why, then accept the coffee.
         </p>
+
+        {searchParams?.saved && (
+          <div className="mb-5 rounded-xl border border-accent bg-[color:var(--accent-tint)] px-4 py-3 text-sm text-accent-deep">
+            Free times saved. New bookings will use them.
+          </div>
+        )}
 
         {!user.availabilitySet && (
           <Link
