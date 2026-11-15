@@ -104,6 +104,16 @@ export default async function IntroPage({
               <div className="mx-auto mb-2 w-fit"><Avatar name={match.other.name} size={60} /></div>
               <div className="text-sm font-semibold">{match.other.name}</div>
               <div className="text-xs text-ink-faint">{sub}</div>
+              {match.other.linkedin && (
+                <a
+                  href={match.other.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-block text-xs font-medium text-accent-deep hover:underline"
+                >
+                  LinkedIn ↗
+                </a>
+              )}
               {match.other.floor != null && (
                 <div className="text-[0.7rem] text-ink-faint">{match.other.floor}th floor</div>
               )}

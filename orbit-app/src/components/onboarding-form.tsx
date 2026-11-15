@@ -97,6 +97,7 @@ export function OnboardingForm({
   defaults: {
     name: string;
     phone?: string | null;
+    linkedin?: string | null;
     role?: string | null;
     company?: string | null;
     education?: string | null;
@@ -225,6 +226,22 @@ export function OnboardingForm({
         <div>
           <label className={lbl}>Name</label>
           <input name="name" defaultValue={defaults.name} className={input} required />
+        </div>
+        <div>
+          <label className={lbl}>LinkedIn profile</label>
+          <input
+            name="linkedin"
+            type="text"
+            inputMode="url"
+            autoCapitalize="none"
+            pattern=".*linkedin\.com/in/.+"
+            title="Your LinkedIn profile link, e.g. linkedin.com/in/your-name"
+            defaultValue={defaults.linkedin ?? ""}
+            placeholder="linkedin.com/in/your-name"
+            className={input}
+            required
+          />
+          <p className="mt-1 text-xs text-ink-faint">So the people you meet can see your background.</p>
         </div>
         <div>
           <label className={lbl}>Phone (WhatsApp)</label>

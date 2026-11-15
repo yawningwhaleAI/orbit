@@ -116,6 +116,16 @@ export default async function MeetingPage({
               <div className="text-sm text-ink-faint">
                 {[other.role, other.company].filter(Boolean).join(" · ")}
               </div>
+              {other.linkedin && (
+                <a
+                  href={other.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-block text-xs font-medium text-accent-deep hover:underline"
+                >
+                  LinkedIn ↗
+                </a>
+              )}
             </div>
           </div>
 

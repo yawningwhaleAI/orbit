@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { generateForBuilding } from "@/lib/matching";
 import { normalizePhone } from "@/lib/phone";
+import { normalizeLinkedIn } from "@/lib/linkedin";
 
 function splitList(v: FormDataEntryValue | null): string[] {
   return String(v || "")
@@ -28,6 +29,8 @@ export async function saveOnboarding(formData: FormData) {
   // Only same-site intro/meeting pages, so this can't become an open redirect.
   const nextRaw = String(formData.get("next") || "");
   const next = /^\/(meeting|intro)\/[A-Za-z0-9_-]+$/.test(nextRaw) ? nextRaw : null;
+  const linkedin = normalizeLinkedIn(formData.get("linkedin"));
+  if (!linkedin) redirect(`/onboarding?error=linkedin${next ? `&next=${encodeURIComponent(next)}` : ""}`);
   if (!phone) redirect(`/onboarding?error=phone${next ? `&next=${encodeURIComponent(next)}` : ""}`);
   const floorRaw = String(formData.get("floor") || "").trim();
   const floor = floorRaw ? Math.max(0, Math.min(200, parseInt(floorRaw, 10) || 0)) : null;
@@ -53,6 +56,7 @@ export async function saveOnboarding(formData: FormData) {
       bio,
       floor,
       phone,
+      linkedin,
       buildingId,
       onboarded: true,
       // reset embeddings so they recompute from new profile (if keys set)

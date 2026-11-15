@@ -48,6 +48,11 @@ export default async function OnboardingPage({
           A few lines. Orbit uses this to find the three people worth meeting each week. Nothing is public.
         </p>
 
+        {searchParams?.error === "linkedin" && (
+          <div className="mb-6 rounded-xl border border-accent bg-[color:var(--accent-tint)] px-4 py-3 text-sm text-accent-deep">
+            Please add your LinkedIn profile link, like linkedin.com/in/your-name.
+          </div>
+        )}
         {(searchParams?.error === "phone" || searchParams?.phone) && (
           <div className="mb-6 rounded-xl border border-accent bg-[color:var(--accent-tint)] px-4 py-3 text-sm text-accent-deep">
             {searchParams?.error === "phone"
@@ -60,6 +65,7 @@ export default async function OnboardingPage({
           defaults={{
             name: user.name,
             phone: user.phone,
+            linkedin: user.linkedin,
             role: user.role,
             company: user.company,
             education: user.education,
