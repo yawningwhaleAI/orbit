@@ -40,6 +40,7 @@ export default async function MembersAdminPage() {
             <div key={s.k} className="rounded-2xl border border-line bg-elev p-4">
               <div className="text-xs text-ink-faint">{s.k}</div>
               <div className="mt-1 font-serif text-3xl text-accent-deep">{s.v}</div>
+              {s.note && <div className="mt-1 text-[0.7rem] text-ink-faint">{s.note}</div>}
             </div>
           ))}
         </div>

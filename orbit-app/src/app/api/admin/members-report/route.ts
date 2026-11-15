@@ -44,7 +44,7 @@ main{max-width:1060px;margin:0 auto;padding:40px 20px}
 .eye{color:var(--acc);font-size:11px;letter-spacing:.18em;font-weight:700;margin:28px 0 6px}
 h1{font:400 34px Georgia,serif;margin:0}.sub{color:var(--faint);margin-top:4px}
 .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:24px 0 10px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}.stat small{color:var(--faint);display:block}.stat b{font:400 30px Georgia,serif;color:var(--acc)}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}.stat small{color:var(--faint);display:block}.stat em{display:block;color:var(--faint);font-size:11px;font-style:normal;margin-top:2px}.stat b{font:400 30px Georgia,serif;color:var(--acc)}
 .by{color:var(--soft);margin:6px 0 18px}
 table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
 th{font-size:12px;color:var(--faint);font-weight:500;text-align:left;padding:12px 14px;border-bottom:1px solid var(--line)}
@@ -59,7 +59,7 @@ td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle}t
 <div class="eye">MEMBERS</div>
 <h1>Orbit members</h1>
 <div class="sub">withinorbit.space · Gurugram pilot · as of ${esc(fmtDate(new Date()))}</div>
-<div class="stats">${stats.map((s) => `<div class="stat"><small>${esc(s.k)}</small><b>${s.v}</b></div>`).join("")}</div>
+<div class="stats">${stats.map((s) => `<div class="stat"><small>${esc(s.k)}</small><b>${s.v}</b>${s.note ? `<em>${esc(s.note)}</em>` : ""}</div>`).join("")}</div>
 ${perBuilding.length ? `<div class="by">By building: ${perBuilding.map((b) => `${esc(b.name)} ${b.n}`).join(" · ")}</div>` : ""}
 <table><thead><tr><th>#</th><th>Member</th><th>Role · Company</th><th>Building</th><th>Status</th><th>Joined</th><th class="r">Intros</th><th class="r">Coffees</th></tr></thead>
 <tbody>${rows}</tbody></table>

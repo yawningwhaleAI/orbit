@@ -35,12 +35,17 @@ export async function loadMembersReport() {
     .map((b) => ({ name: b.name, n: onboarded.filter((u) => u.buildingId === b.id).length }))
     .filter((b) => b.n > 0);
 
-  const stats = [
+  // Coffees that happened outside the app (arranged directly), entered by the
+  // team in OFFLINE_COFFEES. Counted in the coffee totals, always with a note.
+  const offline = Math.max(0, parseInt(process.env.OFFLINE_COFFEES || "0", 10) || 0);
+  const offlineNote = offline > 0 ? `includes ${offline} arranged offline` : undefined;
+
+  const stats: { k: string; v: number; note?: string }[] = [
     { k: "Members listed", v: onboarded.length },
     { k: "Signed in themselves", v: signedIn.length },
     { k: "Intros made", v: intros },
-    { k: "Coffees proposed", v: activeCoffees.length },
-    { k: "Coffees confirmed", v: confirmed.length },
+    { k: "Coffees booked", v: activeCoffees.length + offline, note: offlineNote },
+    { k: "Coffees confirmed", v: confirmed.length + offline, note: offlineNote },
   ];
 
   return { users, coffeesBy, onboarded, perBuilding, stats };
