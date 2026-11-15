@@ -7,6 +7,12 @@ import { Wordmark, Eyebrow, LinkButton, Avatar } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArrowRight, Spark, Users, Calendar, Clock } from "@/components/icons";
 
+// Product Hunt launch banner. Set NEXT_PUBLIC_PRODUCT_HUNT_URL to the launch page
+// once it exists; until then it points at the maker profile. Set it to "off" to hide.
+const PH_ENV = (process.env.NEXT_PUBLIC_PRODUCT_HUNT_URL || "").trim();
+const PH_URL = PH_ENV === "off" ? null : PH_ENV.startsWith("https://www.producthunt.com/") ? PH_ENV : "https://www.producthunt.com/@yawningwhale21";
+const PH_LABEL = (process.env.NEXT_PUBLIC_PRODUCT_HUNT_LABEL || "Launching on Product Hunt · Mon 16 Nov").trim();
+
 export const dynamic = "force-dynamic";
 
 // Dodo Payments checkout link for the operator plan; falls back to email.
@@ -147,6 +153,16 @@ export default async function LandingPage() {
 
         {/* Hero / what it is */}
         <section className={user && !user.isOperator ? "" : "pt-16"}>
+          {PH_URL && (
+            <a
+              href={PH_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent bg-[color:var(--accent-tint)] px-4 py-1.5 text-sm font-medium text-accent-deep transition hover:opacity-90"
+            >
+              <span aria-hidden>🚀</span> {PH_LABEL} <span aria-hidden>→</span>
+            </a>
+          )}
           <Eyebrow>The network inside your building</Eyebrow>
           <h1 className="max-w-3xl font-serif text-[2.6rem] leading-[1.05] sm:text-[3.4rem]">
             Meet the three people in your building worth{" "}
