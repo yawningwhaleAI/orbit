@@ -3,7 +3,66 @@
 > **Purpose of this file:** everything a new AI agent or developer needs to
 > continue building Orbit without the original chat history. Read this first,
 > then `orbit-app/README.md`, `orbit-app/DEPLOY.md`, and `CONTEXT.md`.
-> Last updated: 2026-10-27.
+> Last updated: 2026-11-16 (see section 0 for the latest state).
+
+---
+
+## 0. LATEST STATE: read this first (updated 2026-11-16)
+
+> Sections 1 to 16 below are from 2026-10-27 and partly outdated (for example, they say "15-minute coffee"). Where they disagree with this section, this section wins. For marketing and positioning, see `MARKETING.md`.
+
+**Owner:** Aryan Singh (`@yawningwhale21` on Product Hunt). Non-technical and on a tight budget, so give short, numbered, click-by-click steps.
+
+**Workflow:** commit on branch `claude/orbit-landing-page-ejo0rn`, then push the same commit to `main`, which auto-deploys on Vercel (project `orbit-app`, team `yawningwhaleais-projects`). Schema changes are applied by `prisma db push` during the Vercel build (`scripts/vercel-prebuild.mjs`). **Never commit secrets or real members' personal data.**
+
+### Product as it works now
+- **Sign-up:** magic-link email. The profile requires building, name, **phone (WhatsApp)** and **LinkedIn** (validated, saved as `https://www.linkedin.com/in/<handle>`), plus give/want tags. **Resume autofill is hidden** (`RESUME_AUTOFILL = false` in `components/onboarding-form.tsx`) because the free AI was too slow.
+- **Free times** (`/availability`): a weekly grid of one-hour blocks, Mon–Fri 10:00–18:00 IST (model `Availability`, `User.availabilitySet`). Shown as the last onboarding step. Saving returns to `/home`.
+- **Matching** (`lib/matching.ts`):
+  - **Pool:** across **all buildings in the same city**, because the pilot buildings are a short walk apart.
+  - **Scoring:** two-way give/want word overlap, plus bonuses for both directions, seniority, same-building nearby floors, and bio overlap.
+  - **Weekly quota:** each week is topped up to 3 intros on onboarding, whenever `/home` has fewer than 3, and by the weekly cron.
+  - **Reason lines:** a template by default; AI only if `AI_MATCH_REASONS=on`.
+- **Booking** (`components/time-chooser.tsx`):
+  - the chooser sees the **other person's** free times (solid = both free, dashed = they'd adjust) or can send a **custom time**;
+  - **30 min or 1 hour** (`Meeting.durationMin`);
+  - **where to meet:** DLF cafeteria / CDS 2nd floor / CDS canteen (`lib/venues.ts`);
+  - the invitee can confirm, decline or suggest another time (counter-offer).
+- **Emails** (Resend, from `hello@withinorbit.space`):
+  - **Invite:** includes a "New to Orbit?" note for members listed by the team who never signed in (`User.lastLoginAt` null and no phone).
+  - **Confirmed:** both get each other's **phone and WhatsApp link** (phone shown only after confirmation).
+  - **Declined:** the proposer is told.
+  - **Reminders:** a 24-hour nudge if unanswered, and a day-before reminder (cron `/api/cron/coffee-reminders`).
+- **Return to the invite after sign-in:** the magic link carries `next=/meeting|intro/<id>`, validated by `safeNext()` in `lib/magic.ts`.
+- **"This week"** (`/home`) lists intros plus every coffee from both sides ("needs your reply" is highlighted).
+- **Times** are all IST (`lib/slots.ts`).
+
+### Admin tools (all need the `CRON_SECRET` header, `Authorization: Bearer …`, except `/admin/members`)
+- `POST /api/admin/add-members`: adds members from a JSON body, `{building, members:[…]}`.
+  - It's non-destructive: it skips existing emails, and claims same-name demo placeholders instead of duplicating them.
+  - Real members' data is sent this way and **never stored in the repo**.
+- `POST /api/admin/remove-demo`: a dry run unless `?confirm=1`. Removes accounts on demo domains (`DEMO_EMAIL_DOMAINS` in `lib/email.ts`: example.com/org/net and orbit.app), then tops up intros. **This has been run on production; the demo people are gone.**
+- `GET /api/admin/members-report`: a self-contained HTML report (masked emails, no phones), for screenshots and assignment proof.
+- `/admin/members`: the same report as a page, for signed-in users listed in `ADMIN_EMAILS`.
+- `POST /api/admin/seed?force=1` **wipes the database**. Never use it on production now that real members exist.
+
+### Environment variables added since 2026-10-27
+`TEST_RESET_EMAILS` (these accounts are deleted and recreated on every sign-in, for re-testing onboarding; the owner's test email is set), `ADMIN_EMAILS`, `OFFLINE_COFFEES` (coffees arranged outside the app, added to the coffee totals with an "includes N arranged offline" note), `AI_MATCH_REASONS`, `LLM_PRIMARY=anthropic` (optional Claude-first), `NEXT_PUBLIC_PRODUCT_HUNT_URL` / `NEXT_PUBLIC_PRODUCT_HUNT_LABEL` (homepage launch banner; set the URL to the live PH page once it exists, or "off"). Values live only in Vercel.
+
+**AI status:** the Gemini free quota is exhausted and the OpenRouter free model was removed, so the app currently runs without AI (templates and word-overlap matching).
+
+### Production data (as of 2026-11-16)
+- **10 real members** were added via add-members, in DLF Tower, from CVs the owner shared, using their real emails. There are also real self-signups, such as one in CDS.
+- Two earlier placeholders from CVs may remain on `@example.com` addresses, for example the owner's own "Aryan Singh" profile.
+
+### Product Hunt
+- A draft "Orbit" is fully prepared on the owner's account (`@yawningwhale21`), with launch date **2026-11-16**, but it is **not submitted yet**. Submitting needs the owner's explicit OK on the `submit_launch` preview.
+- If the date has passed, pick a new `launchDate` with `update_launch`.
+- Draft ID: `RWX5DMYYXM2EDD4LHXUKPW5YIPVMDEH2U3`.
+- Launch images are served from `orbit-app/public/launch/` (demo names only).
+
+### Open ideas, not built
+Company-email verification at sign-up, WhatsApp reminders, Google Calendar free/busy sync, using shared free time and feedback as matching signals, and a re-enabled resume autofill once there's a paid AI key.
 
 ---
 
